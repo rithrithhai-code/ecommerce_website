@@ -18,6 +18,7 @@ export function KhqrCode({
   amountLabel,
   merchantName,
   overlay,
+  scanning = false,
   className,
 }: {
   payload: string;
@@ -25,6 +26,8 @@ export function KhqrCode({
   merchantName: string;
   /** e.g. an expiry veil rendered by the parent. */
   overlay?: ReactNode;
+  /** Sweeps a beam across the matrix while the order waits for settlement. */
+  scanning?: boolean;
   className?: string;
 }) {
   const [rendered, setRendered] = useState<{
@@ -105,7 +108,7 @@ export function KhqrCode({
             <img
               src={dataUrl}
               alt={`KHQR payment code for ${amountLabel}`}
-              className="size-full shape-rendering-crisp"
+              className="size-full"
               style={{ imageRendering: "pixelated" }}
             />
           ) : error ? (
@@ -128,11 +131,22 @@ export function KhqrCode({
                 "bottom-0 right-0 border-b-2 border-r-2 rounded-br-xl"].map((position) => (
                 <span
                   key={position}
-                  className={cn("absolute size-7 border-brand/70", position)}
+                  className={cn(
+                    "absolute size-7 transition-colors duration-500",
+                    scanning ? "border-brand" : "border-brand/45",
+                    position,
+                  )}
                 />
               ))}
             </span>
           }
+
+          {scanning ? (
+            <span
+              aria-hidden="true"
+              className="animate-scan pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-transparent via-brand/30 to-transparent"
+            />
+          ) : null}
 
           {overlay}
         </div>
