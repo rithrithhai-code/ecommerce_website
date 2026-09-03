@@ -1,8 +1,9 @@
-# KHMart — React + TypeScript + Tailwind storefront with KHQR checkout
+# JingHUB Express — React + TypeScript + Tailwind storefront with KHQR checkout
 
 A modern e-commerce front end whose checkout page generates a **real EMVCo / KHQR
 merchant-presented QR** from the live order total. The shopper scans it with Bakong or any
 partner-bank wallet; the storefront never sees card details and only polls for the result.
+The brand palette is red in both themes, defined once in `src/index.css`.
 
 Built with Vite 8, React 19, TypeScript (strict), Tailwind CSS v4, Zustand, Framer Motion
 (`motion`), React Router 7 and Vitest.
@@ -120,8 +121,17 @@ npm test            vitest run
 
 Colours, radii and fonts are CSS variables in `src/index.css` under Tailwind v4's `@theme inline`,
 which is why `bg-surface`, `text-fg-muted` and `border-line` flip palettes with the `.dark` class
-and need almost no `dark:` prefixes. Display type is Space Grotesk, body text is Inter. Motion is
-deliberately limited to the cart drawer, mobile nav, payment state changes and the hero.
+and need almost no `dark:` prefixes. JingHUB Express is red in both themes: `--brand`,
+`--brand-strong` (hover) and `--brand-contrast` (ink or near-white, depending on which side of the
+fill it sits on) are set once per palette, and every tint, ring and gradient derives from them —
+including `text-sheen`, which gradients brand into `--gold`. Display type is Space Grotesk, body
+text is Inter. Motion is deliberately limited to scroll reveals, the cart drawer, the QR scan beam
+and the hero, and all of it falls back to static rendering under `prefers-reduced-motion`.
+
+Renaming the brand later touches `src/data/merchant.ts` (the merchant name encoded in the QR),
+the wordmark in `src/components/ui/Logo.tsx`, and the persisted state keys in `src/store/*`
+(`jinghub.cart`, `jinghub.orders`, `jinghub.preferences`, `jinghub.checkout`) plus the matching
+`localStorage.getItem` call in `index.html` — changing those keys drops existing demo carts.
 
 ## Accessibility and responsive behaviour
 

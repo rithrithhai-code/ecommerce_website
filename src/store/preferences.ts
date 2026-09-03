@@ -38,7 +38,7 @@ export const usePreferences = create<PreferencesState>()(
       setCurrency: (currency) => set({ currency }),
     }),
     {
-      name: "khmart.preferences",
+      name: "jinghub.preferences",
       storage: persistStorage,
       partialize: (state) => ({ theme: state.theme, currency: state.currency }),
       onRehydrateStorage: () => (state) => {

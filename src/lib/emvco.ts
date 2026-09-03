@@ -178,7 +178,7 @@ export function buildKhqrPayload(request: KhqrRequest): string {
     tlv(EmvTag.PostalCode, asciiSafe(merchant.postalCode, 9)),
     encodeTemplate(EmvTag.AdditionalData, [
       { id: "01", value: asciiSafe(billNumber, 25) },
-      { id: "03", value: "KHMART" },
+      { id: "03", value: "JINGHUB" },
     ]),
     encodeTemplate(EmvTag.MerchantLanguage, [{ id: "00", value: merchant.language }]),
   );

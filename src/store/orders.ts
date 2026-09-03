@@ -43,7 +43,7 @@ export const useOrders = create<OrdersState>()(
       clearHistory: () => set({ orders: [] }),
     }),
     {
-      name: "khmart.orders",
+      name: "jinghub.orders",
       storage: persistStorage,
     },
   ),

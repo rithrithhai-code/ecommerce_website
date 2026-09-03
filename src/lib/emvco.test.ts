@@ -12,7 +12,7 @@ import {
 import type { MerchantProfile } from "@/types";
 
 const merchant: MerchantProfile = {
-  name: "KHMART PTE LTD",
+  name: "JINGHUB EXPRESS LTD",
   city: "PHNOM PENH",
   country: "KH",
   postalCode: "12302",
@@ -34,7 +34,7 @@ describe("crc16CcittFalse", () => {
 describe("tlv", () => {
   it("prefixes the value with a two-digit length", () => {
     expect(tlv("00", "01")).toBe("000201");
-    expect(tlv("59", "KHMART")).toBe("5906KHMART");
+    expect(tlv("59", "JINGHUB")).toBe("5907JINGHUB");
   });
 
   it("rejects tag ids that are not two digits", () => {

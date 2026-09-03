@@ -401,7 +401,7 @@ export function HomePage() {
                   Checkout, in four steps
                 </h2>
                 <p className="mt-4 text-[15px] leading-relaxed text-fg-muted">
-                  KHMart builds an EMVCo Merchant-Presented payload — merchant account info, MCC,
+                  JingHUB Express builds an EMVCo Merchant-Presented payload — merchant account info, MCC,
                   currency, the exact order total, and a CRC-16 checksum — then renders it locally.
                   Your bank app does the authorisation; the storefront only polls for the result.
                 </p>

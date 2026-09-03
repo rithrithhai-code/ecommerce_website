@@ -28,7 +28,7 @@ export const PRODUCTS: Product[] = [
     reviews: 412,
     stock: 24,
     glyph: "headphones",
-    hue: ["#0f8f68", "#0b3b32"],
+    hue: ["#d63a2b", "#40100c"],
     badge: "bestseller",
     highlights: [
       "Adaptive hybrid ANC with transparency dial",
@@ -225,7 +225,7 @@ export const PRODUCTS: Product[] = [
     reviews: 63,
     stock: 6,
     glyph: "smartphone",
-    hue: ["#1f6f5c", "#0a231e"],
+    hue: ["#43569c", "#12182f"],
     badge: "limited",
     highlights: [
       "7.6″ inner LTPO, 6.5″ cover display",

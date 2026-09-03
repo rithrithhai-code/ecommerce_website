@@ -57,7 +57,7 @@ export const useCheckoutDraft = create<CheckoutDraftState>()(
         set({ customer: EMPTY_CUSTOMER, shippingOptionId: "standard", promoCode: null, touched: {} }),
     }),
     {
-      name: "khmart.checkout",
+      name: "jinghub.checkout",
       storage: persistStorage,
       partialize: (state) => ({ customer: state.customer, shippingOptionId: state.shippingOptionId }),
     },

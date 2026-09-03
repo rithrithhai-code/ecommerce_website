@@ -77,7 +77,7 @@ export function SiteFooter() {
 
       <div className="border-t border-line">
         <div className="mx-auto flex max-w-[88rem] flex-col gap-2 px-4 py-5 text-[12.5px] text-fg-faint sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <p>© {new Date().getFullYear()} KHMart Retail Co. Demo project — not a real shop.</p>
+          <p>© {new Date().getFullYear()} JingHUB Express. Demo project — not a real shop.</p>
           <p>
             Prices in USD with an indicative 4,100 KHR rate. Payment is simulated unless{" "}
             <code className="rounded bg-surface-2 px-1.5 py-0.5 text-[11.5px]">VITE_PAYMENT_API_BASE</code>{" "}

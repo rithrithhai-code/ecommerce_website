@@ -68,7 +68,7 @@ export const useCart = create<CartState>()(
       closeDrawer: () => set({ drawerOpen: false }),
     }),
     {
-      name: "khmart.cart",
+      name: "jinghub.cart",
       storage: persistStorage,
       // Drawer visibility and the "added" flash are view state, not data.
       partialize: (state) => ({ lines: state.lines }),

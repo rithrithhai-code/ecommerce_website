@@ -15,12 +15,12 @@
   --fg: #0b1013;
   --fg-muted: #566361;
   --fg-faint: #8b9694;
-  --brand: #0f8f68;
-  --brand-strong: #0a6a4d;
-  --brand-contrast: #f4fbf8;
+  --brand: #c9291e;
+  --brand-strong: #9c1c14;
+  --brand-contrast: #fff4f2;
   --gold: #a4761f;
   --danger: #b93b31;
-  --ring: #16a97c;
+  --ring: #d9402f;
   --shadow-key: 20 25 30;
 }
 
@@ -36,12 +36,12 @@
   --fg: #eef2f1;
   --fg-muted: #97a4a8;
   --fg-faint: #6d7a7e;
-  --brand: #2ecb95;
-  --brand-strong: #59dfae;
-  --brand-contrast: #04150f;
+  --brand: #ff5647;
+  --brand-strong: #ff8272;
+  --brand-contrast: #2b0603;
   --gold: #e8bc63;
   --danger: #ff6b5e;
-  --ring: #2ecb95;
+  --ring: #ff5647;
   --shadow-key: 0 0 0;
 }
 

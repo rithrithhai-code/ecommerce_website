@@ -1,13 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
-    <linearGradient id="khmart-favicon" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2ecb95"/>
-      <stop offset="1" stop-color="#0a6a4d"/>
+    <linearGradient id="jinghub-favicon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff5647"/>
+      <stop offset="1" stop-color="#9c1c14"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="16" fill="url(#khmart-favicon)"/>
-  <g fill="none" stroke="#f4fbf8" stroke-width="4" stroke-linecap="round">
+  <rect width="64" height="64" rx="16" fill="url(#jinghub-favicon)"/>
+  <g fill="none" stroke="#fff4f2" stroke-width="4" stroke-linecap="round">
     <path d="M18 22v-4a4 4 0 0 1 4-4h4M42 14h4a4 4 0 0 1 4 4v4M46 42v4a4 4 0 0 1-4 4h-4M22 46h-4a4 4 0 0 1-4-4v-4"/>
   </g>
-  <circle cx="32" cy="32" r="5" fill="#f4fbf8"/>
+  <g fill="none" stroke="#fff4f2" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M25 25.5 29.5 32 25 38.5M34 25.5 38.5 32 34 38.5"/>
+  </g>
 </svg>

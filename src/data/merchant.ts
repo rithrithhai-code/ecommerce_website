@@ -5,7 +5,7 @@ import type { MerchantProfile } from "@/types";
  * QR payload is rebuilt from this object alone, so nothing else has to change.
  */
 export const MERCHANT: MerchantProfile = {
-  name: "KHMART RETAIL CO",
+  name: "JINGHUB EXPRESS",
   city: "Phnom Penh",
   country: "KH",
   postalCode: "12302",
@@ -18,7 +18,7 @@ export const MERCHANT: MerchantProfile = {
 
 export const SUPPORT_CONTACT = {
   phone: "+855 23 900 100",
-  email: "care@khmart.example",
+  email: "care@jinghub.example",
   address: "No. 24, Street 63, BKK1, Phnom Penh 12302",
   hours: "Mon–Sun · 08:30 – 20:30 (ICT)",
 };
