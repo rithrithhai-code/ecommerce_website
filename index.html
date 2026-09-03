@@ -1,10 +1,36 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>khmart</title>
+    <meta name="theme-color" content="#0c1013" />
+    <meta
+      name="description"
+      content="KHMart — a modern React + TypeScript + Tailwind storefront with KHQR / EMVCo scan-to-pay checkout."
+    />
+    <title>KHMart — Modern Commerce, KHQR Checkout</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      // Read the persisted theme before first paint so the correct palette is applied immediately.
+      (function () {
+        try {
+          var raw = localStorage.getItem("khmart.preferences");
+          var theme = raw ? JSON.parse(raw).state.theme : null;
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          if (theme === "dark" || (!theme && prefersDark)) {
+            document.documentElement.classList.add("dark");
+          }
+        } catch (err) {
+          /* storage unavailable — fall back to the light palette */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
