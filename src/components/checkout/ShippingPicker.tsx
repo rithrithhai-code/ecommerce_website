@@ -1,7 +1,8 @@
 import { Store, Truck, Zap } from "lucide-react";
 
 import { Money } from "@/components/ui/Money";
-import { SHIPPING_OPTIONS } from "@/lib/pricing";
+import { useShippingOptions } from "@/i18n/domain";
+import { useI18n } from "@/i18n";
 import { cn } from "@/lib/cn";
 import { useCheckoutDraft } from "@/store/checkout";
 import type { ShippingOptionId } from "@/types";
@@ -16,11 +17,13 @@ const ICONS: Record<ShippingOptionId, typeof Truck> = {
 export function ShippingPicker() {
   const shippingOptionId = useCheckoutDraft((state) => state.shippingOptionId);
   const setShippingOption = useCheckoutDraft((state) => state.setShippingOption);
+  const options = useShippingOptions();
+  const { t } = useI18n();
 
   return (
     <fieldset className="space-y-2">
       <legend className="sr-only">Delivery method</legend>
-      {SHIPPING_OPTIONS.map((option) => {
+      {options.map((option) => {
         const Icon = ICONS[option.id];
         const active = shippingOptionId === option.id;
         return (
@@ -55,12 +58,12 @@ export function ShippingPicker() {
             </span>
             <span className="shrink-0 text-sm font-medium">
               {option.priceUsd === 0 ? (
-                <span className="text-brand">Free</span>
+                <span className="text-brand">{t("summary.free")}</span>
               ) : option.freeOverUsd ? (
                 <span className="inline-flex flex-col items-end leading-tight">
                   <Money usd={option.priceUsd} className="tabular-nums" />
                   <span className="text-[11px] font-normal text-fg-faint">
-                    over {option.freeOverUsd} USD
+                    {t("shipping.overThreshold", { amount: option.freeOverUsd })}
                   </span>
                 </span>
               ) : (

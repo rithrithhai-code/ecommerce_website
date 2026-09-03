@@ -44,16 +44,16 @@ export function amountInCurrency(usd: number, currency: CurrencyCode): number {
     : Math.round(converted / 10) * 10;
 }
 
-export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-GB", {
+export function formatDate(iso: string, locale = "en-GB"): string {
+  return new Date(iso).toLocaleDateString(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
 }
 
-export function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("en-GB", {
+export function formatDateTime(iso: string, locale = "en-GB"): string {
+  return new Date(iso).toLocaleString(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",

@@ -7,27 +7,31 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { useOrders } from "@/store/orders";
+import { useStatusLabels } from "@/i18n/domain";
+import { useI18n } from "@/i18n";
 import type { PaymentStatus } from "@/types";
 
-const STATUS_META: Record<PaymentStatus, { label: string; tone: BadgeTone }> = {
-  draft: { label: "Draft", tone: "neutral" },
-  awaiting_payment: { label: "Awaiting payment", tone: "gold" },
-  paid: { label: "Paid", tone: "brand" },
-  failed: { label: "Payment failed", tone: "danger" },
-  expired: { label: "Code expired", tone: "neutral" },
+const STATUS_TONE: Record<PaymentStatus, BadgeTone> = {
+  draft: "neutral",
+  awaiting_payment: "gold",
+  paid: "brand",
+  failed: "danger",
+  expired: "neutral",
 };
 
 export function OrdersPage() {
   const orders = useOrders((state) => state.orders);
   const clearHistory = useOrders((state) => state.clearHistory);
+  const { t, locale } = useI18n();
+  const statusLabels = useStatusLabels();
 
   if (orders.length === 0) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-24 sm:px-6">
         <EmptyState
-          title="No orders on this device"
-          description="Checkout history is kept in this browser's local storage, so it starts empty. Complete a KHQR payment and the receipt appears here."
-          action={<ButtonLink to="/shop">Start shopping</ButtonLink>}
+          title={t("orders.emptyTitle")}
+          description={t("orders.emptyBody")}
+          action={<ButtonLink to="/shop">{t("orders.startShopping")}</ButtonLink>}
         />
       </div>
     );
@@ -41,21 +45,21 @@ export function OrdersPage() {
         <div>
           <h1 className="flex items-center gap-2.5 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
             <History size={24} className="text-brand" />
-            Order history
+            {t("orders.title")}
           </h1>
           <p className="mt-2 text-sm text-fg-muted">
-            {orders.length} order{orders.length === 1 ? "" : "s"} · {paidCount} settled by KHQR
+            {t("orders.subtitle", { count: orders.length, paid: paidCount })}
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={clearHistory}>
           <Trash2 size={14} />
-          Clear history
+          {t("orders.clear")}
         </Button>
       </header>
 
       <ul className="space-y-3">
         {orders.map((order) => {
-          const status = STATUS_META[order.status];
+          const statusTone = STATUS_TONE[order.status];
           return (
             <li key={order.id}>
               <Link
@@ -83,18 +87,17 @@ export function OrdersPage() {
                     {order.reference}
                   </span>
                   <span className="block text-[13px] text-fg-faint">
-                    {formatDateTime(order.createdAt)} · {order.lines.length} item
-                    {order.lines.length === 1 ? "" : "s"}
+                    {formatDateTime(order.createdAt, locale)} · {t("orders.lineCount", { count: order.lines.length })}
                   </span>
                 </span>
 
-                <Badge tone={status.tone}>{status.label}</Badge>
+                <Badge tone={statusTone}>{statusLabels[order.status]}</Badge>
 
                 <span className="text-right">
                   <span className="block font-display text-[17px] font-semibold tabular-nums">
                     {formatMoney(order.totals.totalUsd, order.currency)}
                   </span>
-                  <span className="block text-[11.5px] text-fg-faint">view receipt →</span>
+                  <span className="block text-[11.5px] text-fg-faint">{t("orders.viewReceipt")}</span>
                 </span>
               </Link>
             </li>

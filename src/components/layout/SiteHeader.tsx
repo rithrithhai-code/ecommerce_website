@@ -1,40 +1,28 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Menu, Moon, Search, ShoppingBag, Sun, X } from "lucide-react";
+import { Globe, Menu, Moon, Search, ShoppingBag, Sun, X } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/cn";
 import { CURRENCY_LABEL } from "@/lib/format";
+import { LANGUAGES, useI18n } from "@/i18n";
 import { useCart } from "@/store/cart";
 import { useCartCount } from "@/hooks/useCartView";
 import { usePreferences } from "@/store/preferences";
 import type { CurrencyCode } from "@/types";
 
-const NAV = [
-  { to: "/shop", label: "Shop" },
-  { to: "/shop?sort=rating", label: "Top rated" },
-  { to: "/orders", label: "My orders" },
-  { to: "/how-to-pay", label: "How KHQR works" },
-];
-
-const TICKER = [
-  "KHQR & Bakong accepted",
-  "Free delivery over $150",
-  "24-month warranty on tech",
-  "Same-day express in BKK1",
-];
-
 function CurrencySwitch() {
   const currency = usePreferences((state) => state.currency);
   const setCurrency = usePreferences((state) => state.setCurrency);
+  const { t } = useI18n();
   const options: CurrencyCode[] = ["USD", "KHR"];
 
   return (
     <div
       className="flex items-center rounded-full border border-line bg-surface-2 p-0.5"
       role="group"
-      aria-label="Display currency"
+      aria-label={t("nav.currency")}
     >
       {options.map((option) => (
         <button
@@ -57,16 +45,54 @@ function CurrencySwitch() {
   );
 }
 
+/**
+ * Language switch. Khmer is written as its own endonym, so the control stays recognisable
+ * whichever language is currently active.
+ */
+function LanguageSwitch({ compact = false }: { compact?: boolean }) {
+  const { lang, setLang, t } = useI18n();
+
+  return (
+    <div
+      className="flex items-center gap-1 rounded-full border border-line bg-surface-2 p-0.5"
+      role="group"
+      aria-label={t("nav.language")}
+    >
+      {!compact ? (
+        <Globe size={13} className="ml-1.5 shrink-0 text-fg-faint" aria-hidden="true" />
+      ) : null}
+      {LANGUAGES.map((option) => (
+        <button
+          key={option.code}
+          type="button"
+          onClick={() => setLang(option.code)}
+          aria-pressed={lang === option.code}
+          lang={option.code}
+          className={cn(
+            "h-7 rounded-full px-2.5 text-[12px] font-semibold transition",
+            lang === option.code
+              ? "bg-surface text-fg shadow-soft"
+              : "text-fg-faint hover:text-fg-muted",
+          )}
+        >
+          {option.short}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function ThemeSwitch() {
   const theme = usePreferences((state) => state.theme);
   const toggleTheme = usePreferences((state) => state.toggleTheme);
+  const { t } = useI18n();
 
   return (
     <button
       type="button"
       onClick={toggleTheme}
       className="flex size-9 items-center justify-center rounded-full border border-line bg-surface-2 text-fg-muted transition hover:text-fg"
-      aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+      aria-label={theme === "dark" ? t("nav.themeToLight") : t("nav.themeToDark")}
     >
       {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
     </button>
@@ -74,11 +100,19 @@ function ThemeSwitch() {
 }
 
 function AnnouncementBar() {
+  const { dict } = useI18n();
+  const ticker = [
+    dict.ticker.khqr,
+    dict.ticker.freeDelivery,
+    dict.ticker.warranty,
+    dict.ticker.sameDay,
+  ];
+
   return (
     <div className="overflow-hidden border-b border-line bg-gradient-to-r from-fg via-fg to-brand-strong py-2 text-canvas">
       <div className="animate-marquee flex w-max gap-10 pr-10 hover:[animation-play-state:paused]">
-        {[...TICKER, ...TICKER, ...TICKER, ...TICKER].map((item, index) => (
-          <span key={index} className="flex items-center gap-2 text-[12px] font-medium tracking-wide">
+        {[...ticker, ...ticker, ...ticker, ...ticker].map((item, index) => (
+          <span key={`${item}-${index}`} className="flex items-center gap-2 text-[12px] font-medium tracking-wide">
             <span className="size-1 rounded-full bg-brand" aria-hidden="true" />
             {item}
           </span>
@@ -93,8 +127,16 @@ export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
+  const { t, dict } = useI18n();
   const openDrawer = useCart((state) => state.openDrawer);
   const count = useCartCount();
+
+  const nav = [
+    { to: "/shop", label: dict.nav.shop },
+    { to: "/shop?sort=rating", label: dict.nav.topRated },
+    { to: "/orders", label: dict.nav.orders },
+    { to: "/how-to-pay", label: dict.nav.howToPay },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -116,9 +158,7 @@ export function SiteHeader() {
       <div
         className={cn(
           "border-b transition-colors duration-300",
-          scrolled
-            ? "glass border-line"
-            : "border-transparent bg-canvas/60 backdrop-blur-sm",
+          scrolled ? "glass border-line" : "border-transparent bg-canvas/60 backdrop-blur-sm",
         )}
       >
         <div className="mx-auto flex h-16 max-w-[88rem] items-center gap-3 px-4 sm:px-6 lg:px-8">
@@ -127,7 +167,7 @@ export function SiteHeader() {
             className="flex size-9 items-center justify-center rounded-full border border-line text-fg-muted lg:hidden"
             onClick={() => setMenuOpen((open) => !open)}
             aria-expanded={menuOpen}
-            aria-label="Toggle navigation menu"
+            aria-label={t(menuOpen ? "nav.closeMenu" : "nav.toggleMenu")}
           >
             {menuOpen ? <X size={17} /> : <Menu size={17} />}
           </button>
@@ -135,7 +175,7 @@ export function SiteHeader() {
           <Logo />
 
           <nav className="ml-4 hidden items-center gap-1 lg:flex">
-            {NAV.map((item) => (
+            {nav.map((item) => (
               <NavLink
                 key={item.label}
                 to={item.to}
@@ -163,14 +203,17 @@ export function SiteHeader() {
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search headphones, laptops…"
-                aria-label="Search products"
+                placeholder={t("nav.searchPlaceholder")}
+                aria-label={t("nav.searchAria")}
                 className="h-10 w-full rounded-full border border-line bg-surface-2/80 pr-3 pl-9 text-sm transition placeholder:text-fg-faint hover:border-line-strong focus:border-brand focus:bg-surface focus:shadow-soft focus:ring-4 focus:ring-brand/12 focus:outline-none"
               />
             </div>
           </form>
 
           <div className="ml-auto flex items-center gap-2 md:ml-0">
+            <span className="hidden sm:inline">
+              <LanguageSwitch />
+            </span>
             <span className="hidden sm:inline">
               <CurrencySwitch />
             </span>
@@ -182,7 +225,10 @@ export function SiteHeader() {
               type="button"
               onClick={openDrawer}
               className="relative flex h-9 items-center gap-2 rounded-full bg-fg px-3.5 text-[13px] font-semibold text-canvas transition hover:scale-[1.04] hover:opacity-95 active:scale-100"
-              aria-label={`Open cart, ${count} item${count === 1 ? "" : "s"}`}
+              aria-label={t("nav.openCart", {
+                count,
+                plural: count === 1 ? t("nav.item") : t("nav.items"),
+              })}
             >
               <ShoppingBag size={16} />
               <span key={count} className="animate-pop tabular-nums">
@@ -211,13 +257,13 @@ export function SiteHeader() {
                     type="search"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Search products"
-                    aria-label="Search products"
+                    placeholder={t("nav.searchPlaceholder")}
+                    aria-label={t("nav.searchAria")}
                     className="h-11 w-full rounded-full border border-line bg-surface-2 px-4 text-sm focus:border-brand focus:outline-none"
                   />
                 </form>
 
-                {NAV.map((item) => (
+                {nav.map((item) => (
                   <Link
                     key={item.label}
                     to={item.to}
@@ -228,7 +274,8 @@ export function SiteHeader() {
                   </Link>
                 ))}
 
-                <div className="flex items-center gap-2 pt-1 sm:hidden">
+                <div className="flex flex-wrap items-center gap-2 pt-1 sm:hidden">
+                  <LanguageSwitch compact />
                   <CurrencySwitch />
                   <ThemeSwitch />
                 </div>

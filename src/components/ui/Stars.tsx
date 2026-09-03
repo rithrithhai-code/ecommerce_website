@@ -1,6 +1,7 @@
 import { Star } from "lucide-react";
 
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n";
 
 /**
  * Rating readout. The filled layer is clipped to the exact ratio, so 4.8 reads as
@@ -18,13 +19,14 @@ export function Stars({
   className?: string;
 }) {
   const percent = Math.max(0, Math.min(100, (rating / 5) * 100));
+  const { t } = useI18n();
 
   return (
     <span className={cn("inline-flex items-center gap-1.5", className)}>
       <span
         className="relative inline-flex"
         role="img"
-        aria-label={`${rating.toFixed(1)} out of 5`}
+        aria-label={t("common.ratingOf", { rating: rating.toFixed(1) })}
       >
         <span className="flex text-line-strong">
           {[0, 1, 2, 3, 4].map((index) => (

@@ -4,6 +4,7 @@ import QRCode from "qrcode";
 
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n";
 
 /**
  * Renders an EMVCo payload into a scannable QR.
@@ -30,6 +31,7 @@ export function KhqrCode({
   scanning?: boolean;
   className?: string;
 }) {
+  const { t } = useI18n();
   const [rendered, setRendered] = useState<{
     payload: string;
     dataUrl: string | null;
@@ -67,7 +69,7 @@ export function KhqrCode({
         setRendered({
           payload,
           dataUrl: null,
-          error: cause instanceof Error ? cause.message : "Could not render the QR code",
+          error: cause instanceof Error ? cause.message : "",
         });
       });
 
@@ -88,7 +90,7 @@ export function KhqrCode({
       setClipboardError(null);
       setCopied(true);
     } catch {
-      setClipboardError("Clipboard access was blocked by the browser");
+      setClipboardError(t("payment.clipboardBlocked"));
     }
   }
 
@@ -98,7 +100,7 @@ export function KhqrCode({
         <div className="flex items-center justify-between gap-2 px-1 pb-3">
           <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold tracking-wide text-fg-muted uppercase">
             <QrCode size={14} className="text-brand" />
-            KHQR
+            {t("payment.payWithLabel")}
           </span>
           <span className="text-[12px] font-semibold tabular-nums">{amountLabel}</span>
         </div>
@@ -107,14 +109,14 @@ export function KhqrCode({
           {dataUrl ? (
             <img
               src={dataUrl}
-              alt={`KHQR payment code for ${amountLabel}`}
+              alt={t("payment.qrAria", { amount: amountLabel })}
               className="size-full"
               style={{ imageRendering: "pixelated" }}
             />
           ) : error ? (
             <div className="flex size-full flex-col items-center justify-center gap-2 text-center text-danger">
               <TriangleAlert size={22} />
-              <p className="max-w-[16rem] text-[12px] font-medium">{error}</p>
+              <p className="max-w-[16rem] text-[12px] font-medium">{error || t("payment.renderError")}</p>
             </div>
           ) : (
             <div className="skeleton flex size-full items-center justify-center rounded-xl">
@@ -152,15 +154,14 @@ export function KhqrCode({
         </div>
 
         <p className="px-1 pt-3 text-center text-[11.5px] text-fg-faint">
-          Pay <span className="font-semibold text-fg-muted">{merchantName}</span> · amount is locked
-          into the code
+          {t("payment.payTo", { merchant: merchantName })}
         </p>
       </div>
 
       <div className="no-print flex flex-wrap items-center justify-center gap-2">
         <Button variant="outline" size="sm" onClick={copyPayload}>
           {copied ? <Check size={14} className="text-brand" /> : <Copy size={14} />}
-          {copied ? "Payload copied" : "Copy payload"}
+          {copied ? t("payment.payloadCopied") : t("payment.copyPayload")}
         </Button>
         {dataUrl ? (
           <>
@@ -170,11 +171,11 @@ export function KhqrCode({
               className="inline-flex h-9 items-center gap-2 rounded-full border border-line-strong bg-surface px-3.5 text-[13px] font-medium transition hover:bg-surface-2"
             >
               <Download size={14} />
-              Save PNG
+              {t("payment.savePng")}
             </a>
             <Button variant="ghost" size="sm" onClick={() => window.print()}>
               <Printer size={14} />
-              Print
+              {t("payment.print")}
             </Button>
           </>
         ) : null}

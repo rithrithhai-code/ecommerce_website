@@ -10,35 +10,39 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getProductById } from "@/data/products";
 import { MERCHANT } from "@/data/merchant";
+import { useShippingOptions, useStatusLabels } from "@/i18n/domain";
+import { useI18n } from "@/i18n";
 import { formatDateTime, formatMoney } from "@/lib/format";
-import { findShippingOption } from "@/lib/pricing";
 import { useOrders } from "@/store/orders";
 import type { CurrencyCode, PaymentStatus } from "@/types";
 
-const STATUS_META: Record<PaymentStatus, { label: string; tone: BadgeTone }> = {
-  draft: { label: "Draft", tone: "neutral" },
-  awaiting_payment: { label: "Awaiting payment", tone: "gold" },
-  paid: { label: "Paid", tone: "brand" },
-  failed: { label: "Payment failed", tone: "danger" },
-  expired: { label: "Code expired", tone: "neutral" },
+const STATUS_TONE: Record<PaymentStatus, BadgeTone> = {
+  draft: "neutral",
+  awaiting_payment: "gold",
+  paid: "brand",
+  failed: "danger",
+  expired: "neutral",
 };
 
 export function OrderConfirmationPage() {
   const { reference } = useParams();
   const orders = useOrders((state) => state.orders);
   const order = orders.find((candidate) => candidate.reference === reference);
+  const shippingOptions = useShippingOptions();
+  const statusLabels = useStatusLabels();
+  const { t, locale } = useI18n();
 
   if (!order) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-24 sm:px-6">
         <EmptyState
-          title="Receipt not found"
-          description={`No order with reference ${reference ?? ""} is stored in this browser. Orders live in local storage, so a cleared storage or a different device will not show them.`}
+          title={t("receipt.notFoundTitle")}
+          description={t("receipt.notFoundBody", { reference: reference ?? "" })}
           action={
             <div className="flex gap-2">
-              <ButtonLink to="/orders">Order history</ButtonLink>
+              <ButtonLink to="/orders">{t("receipt.orderHistory")}</ButtonLink>
               <ButtonLink to="/shop" variant="outline">
-                Back to shop
+                {t("receipt.backToShop")}
               </ButtonLink>
             </div>
           }
@@ -47,9 +51,9 @@ export function OrderConfirmationPage() {
     );
   }
 
-  const shipping = findShippingOption(order.shippingOptionId);
+  const shipping =
+    shippingOptions.find((option) => option.id === order.shippingOptionId) ?? shippingOptions[0];
   const paid = order.status === "paid";
-  const status = STATUS_META[order.status];
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
@@ -65,58 +69,58 @@ export function OrderConfirmationPage() {
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 320, damping: 18 }}
-              className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand text-brand-contrast animate-pulse-ring"
+              className="animate-pulse-ring flex size-12 shrink-0 items-center justify-center rounded-full bg-brand text-brand-contrast"
             >
               <CircleCheck size={24} strokeWidth={2} />
             </motion.span>
             <div>
               <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-                {paid ? "Payment received" : "Order saved"}
+                {paid ? t("receipt.paidTitle") : t("receipt.savedTitle")}
               </h1>
               <p className="mt-1 text-sm text-fg-muted">
                 {paid
-                  ? `Thank you, ${order.customer.fullName.split(" ")[0]}. A receipt is on its way to ${order.customer.email}.`
-                  : "This order is still awaiting its KHQR settlement."}
+                  ? t("receipt.thanksPaid", {
+                      name: order.customer.fullName.split(" ")[0],
+                      email: order.customer.email,
+                    })
+                  : t("receipt.thanksAwaiting")}
               </p>
             </div>
           </div>
-          <Badge tone={status.tone}>{status.label}</Badge>
+          <Badge tone={STATUS_TONE[order.status]}>{statusLabels[order.status]}</Badge>
         </div>
 
         <dl className="mt-8 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-3">
-          <Fact label="Order number" value={order.id} mono />
-          <Fact label="KHQR bill reference" value={order.reference} mono />
+          <Fact label={t("receipt.orderNumber")} value={order.id} mono />
+          <Fact label={t("receipt.billReference")} value={order.reference} mono />
           <Fact
-            label={paid ? "Paid" : "Created"}
-            value={formatDateTime(order.paidAt ?? order.createdAt)}
+            label={paid ? t("receipt.paid") : t("receipt.created")}
+            value={formatDateTime(order.paidAt ?? order.createdAt, locale)}
           />
         </dl>
 
         <div className="mt-8">
-          <h2 className="mb-4 font-display text-lg font-semibold">What happens next</h2>
+          <h2 className="mb-4 font-display text-lg font-semibold">{t("receipt.nextSteps")}</h2>
           <ol className="grid gap-3 sm:grid-cols-3">
             <TimelineStep
               done
               icon={CircleCheck}
-              title="Payment confirmed"
+              title={t("receipt.stepPaid")}
               body={
                 paid
-                  ? `Settled ${order.paidAt ? formatDateTime(order.paidAt) : "just now"}`
-                  : "Waiting for your bank"
+                  ? t("receipt.stepPaidDone", {
+                      time: order.paidAt ? formatDateTime(order.paidAt, locale) : "",
+                    })
+                  : t("receipt.stepPaidPending")
               }
             />
             <TimelineStep
               done={false}
               icon={Box}
-              title="Packed at the BKK1 counter"
-              body="You get an SMS with the courier name before it leaves"
+              title={t("receipt.stepPacked")}
+              body={t("receipt.stepPackedBody")}
             />
-            <TimelineStep
-              done={false}
-              icon={Truck}
-              title={shipping.label}
-              body={shipping.eta}
-            />
+            <TimelineStep done={false} icon={Truck} title={shipping.label} body={shipping.eta} />
           </ol>
         </div>
       </motion.div>
@@ -124,7 +128,7 @@ export function OrderConfirmationPage() {
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
           <h2 className="mb-4 font-display text-lg font-semibold">
-            {order.lines.length} item{order.lines.length === 1 ? "" : "s"} in this order
+            {t("receipt.items", { count: order.lines.length })}
           </h2>
           <ul className="divide-y divide-line">
             {order.lines.map((line) => {
@@ -143,7 +147,10 @@ export function OrderConfirmationPage() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[14.5px] font-semibold">{line.name}</p>
                     <p className="text-[12.5px] text-fg-faint">
-                      {line.qty} × {formatMoney(line.unitPriceUsd, order.currency)}
+                      {t("receipt.each", {
+                        count: line.qty,
+                        amount: formatMoney(line.unitPriceUsd, order.currency),
+                      })}
                     </p>
                   </div>
                   <p className="text-sm font-semibold tabular-nums">
@@ -155,23 +162,31 @@ export function OrderConfirmationPage() {
           </ul>
 
           <div className="mt-5 space-y-1.5 border-t border-line pt-4 text-sm">
-            <MoneyRow label="Subtotal" value={order.totals.subtotalUsd} currency={order.currency} />
+            <MoneyRow
+              label={t("summary.subtotal")}
+              value={order.totals.subtotalUsd}
+              currency={order.currency}
+            />
             {order.totals.discountUsd > 0 ? (
               <MoneyRow
-                label={`Discount${order.promoCode ? ` · ${order.promoCode}` : ""}`}
+                label={`${t("summary.discount")}${order.promoCode ? ` · ${order.promoCode}` : ""}`}
                 value={-order.totals.discountUsd}
                 currency={order.currency}
                 tone="brand"
               />
             ) : null}
             <MoneyRow
-              label="Delivery"
+              label={t("summary.delivery")}
               value={order.totals.shippingUsd}
               currency={order.currency}
             />
-            <MoneyRow label="GST" value={order.totals.taxUsd} currency={order.currency} />
+            <MoneyRow
+              label={t("summary.gst", { rate: 10 })}
+              value={order.totals.taxUsd}
+              currency={order.currency}
+            />
             <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
-              <span className="font-display text-base font-semibold">Total paid</span>
+              <span className="font-display text-base font-semibold">{t("receipt.totalPaid")}</span>
               <span className="font-display text-xl font-semibold tabular-nums">
                 {formatMoney(order.totals.totalUsd, order.currency)}
               </span>
@@ -183,12 +198,12 @@ export function OrderConfirmationPage() {
           <section className="rounded-card border border-line bg-surface p-5">
             <h2 className="mb-2 flex items-center gap-2 font-display text-[15px] font-semibold">
               <Receipt size={16} className="text-brand" />
-              Delivery to
+              {t("receipt.deliveryTo")}
             </h2>
             <address className="text-[13.5px] leading-relaxed text-fg-muted not-italic">
               <span className="font-semibold text-fg">{order.customer.fullName}</span>
               <br />
-              {order.customer.addressLine || "Store pickup — BKK1 flagship"}
+              {order.customer.addressLine || t("receipt.storePickup")}
               <br />
               {order.customer.city} {order.customer.postalCode}
               <br />
@@ -204,20 +219,19 @@ export function OrderConfirmationPage() {
           <div className="no-print flex flex-col gap-2">
             <Button variant="outline" onClick={() => window.print()} fullWidth>
               <Printer size={16} />
-              Print receipt
+              {t("receipt.print")}
             </Button>
             <ButtonLink to="/orders" variant="ghost" fullWidth>
-              All orders
+              {t("receipt.allOrders")}
             </ButtonLink>
             <ButtonLink to="/shop" fullWidth>
-              Continue shopping
+              {t("receipt.continueShopping")}
               <ArrowRight size={16} />
             </ButtonLink>
           </div>
 
           <p className="text-[12px] leading-relaxed text-fg-faint">
-            Charged by {MERCHANT.name} · MCC {MERCHANT.mcc}. Keep the bill reference for any
-            support request — it is the key your bank uses too.
+            {t("receipt.chargedBy", { merchant: MERCHANT.name, mcc: MERCHANT.mcc })}
           </p>
         </div>
       </div>
@@ -225,7 +239,7 @@ export function OrderConfirmationPage() {
       <section className="mt-8 no-print">
         <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-semibold">
           <QrCode size={17} className="text-brand" />
-          The code you scanned
+          {t("receipt.codeYouScanned")}
         </h2>
         <EmvcoInspector payload={order.qrPayload} />
       </section>

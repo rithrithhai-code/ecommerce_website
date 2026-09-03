@@ -9,6 +9,8 @@ import { PaymentPanel } from "@/components/checkout/PaymentPanel";
 import { PromoField } from "@/components/checkout/PromoField";
 import { ShippingPicker } from "@/components/checkout/ShippingPicker";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { useShippingOption } from "@/i18n/domain";
+import { useI18n } from "@/i18n";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useCartTotals, useResolvedLines } from "@/hooks/useCartView";
 import { usePaymentSession } from "@/hooks/usePaymentSession";
@@ -17,7 +19,6 @@ import { cn } from "@/lib/cn";
 import { amountInCurrency, formatMoney } from "@/lib/format";
 import { buildKhqrPayload, emvAmount } from "@/lib/emvco";
 import { makeBillNumber, makeOrderId } from "@/lib/order";
-import { findShippingOption } from "@/lib/pricing";
 import { useCart } from "@/store/cart";
 import { useCheckoutDraft, validateCustomer } from "@/store/checkout";
 import { useOrders } from "@/store/orders";
@@ -42,6 +43,8 @@ export function CheckoutPage() {
   const customer = useCheckoutDraft((state) => state.customer);
   const markTouched = useCheckoutDraft((state) => state.markTouched);
   const totals = useCartTotals(shippingOptionId, promoCode);
+  const shipping = useShippingOption(shippingOptionId);
+  const { t, dict } = useI18n();
   const upsertOrder = useOrders((state) => state.upsert);
   const markPaid = useOrders((state) => state.setStatus);
   const clearCart = useCart((state) => state.clear);
@@ -109,12 +112,12 @@ export function CheckoutPage() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-24 sm:px-6">
         <EmptyState
-          title="Nothing to check out yet"
-          description="Add a product first. Checkout builds the KHQR from the live cart total, so an empty cart has nothing to encode."
+          title={t("checkout.emptyTitle")}
+          description={t("checkout.emptyBody")}
           action={
             <ButtonLink to="/shop" size="lg">
               <ShoppingCart size={17} />
-              Go to the catalogue
+              {t("checkout.goToCatalogue")}
             </ButtonLink>
           }
         />
@@ -122,12 +125,11 @@ export function CheckoutPage() {
     );
   }
 
-  const shipping = findShippingOption(shippingOptionId);
 
   return (
     <div className="mx-auto max-w-[88rem] px-4 py-10 sm:px-6 lg:px-8">
       <header className="mb-8">
-        <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Checkout</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">{t("checkout.title")}</h1>
         <CheckoutSteps stage={stage} paid={session.status === "paid"} />
       </header>
 
@@ -141,9 +143,9 @@ export function CheckoutPage() {
               >
                 <div className="mb-5 flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="font-display text-lg font-semibold">Where it goes</h2>
+                    <h2 className="font-display text-lg font-semibold">{t("checkout.whereGoes")}</h2>
                     <p className="mt-1 text-[13px] text-fg-muted">
-                      Used for the delivery label and the tax invoice only. No account is created.
+                      {t("checkout.whereGoesBody")}
                     </p>
                   </div>
                 </div>
@@ -151,7 +153,7 @@ export function CheckoutPage() {
               </section>
 
               <section className="hairline-top relative overflow-hidden rounded-card border border-line bg-surface p-5 sm:p-6">
-                <h2 className="mb-1 font-display text-lg font-semibold">Delivery method</h2>
+                <h2 className="mb-1 font-display text-lg font-semibold">{t("checkout.deliveryMethod")}</h2>
                 <p className="mb-4 text-[13px] text-fg-muted">
                   {shipping.label} · {shipping.eta}
                 </p>
@@ -159,13 +161,9 @@ export function CheckoutPage() {
               </section>
 
               <section className="hairline-top relative overflow-hidden rounded-card border border-line bg-surface p-5 sm:p-6">
-                <h2 className="mb-3 font-display text-lg font-semibold">Ready to pay?</h2>
+                <h2 className="mb-3 font-display text-lg font-semibold">{t("checkout.readyTitle")}</h2>
                 <ul className="mb-5 space-y-2 text-[13.5px] text-fg-muted">
-                  {[
-                    "The QR encodes this exact total — nothing for the payer to type.",
-                    "Works with Bakong and any partner-bank wallet that reads EMVCo codes.",
-                    "No card number, CVV or expiry is ever collected or stored.",
-                  ].map((point) => (
+                  {dict.checkout.readyPoints.map((point) => (
                     <li key={point} className="flex gap-2.5">
                       <CircleCheck size={16} className="mt-0.5 shrink-0 text-brand" />
                       {point}
@@ -174,13 +172,13 @@ export function CheckoutPage() {
                 </ul>
                 <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-surface-2 px-4 py-3">
                   <p className="text-[13px] text-fg-muted">
-                    EMVCo field 54
+                    {t("checkout.field54")}
                     <code className="ml-2 rounded bg-surface px-2 py-1 font-mono text-[13px] font-semibold text-fg">
                       {emvAmount(amountInCurrency(totals.totalUsd, currency), currency)}
                     </code>
                   </p>
                   <p className="text-right">
-                    <span className="block text-[12px] text-fg-faint">Total payable</span>
+                    <span className="block text-[12px] text-fg-faint">{t("checkout.totalPayable")}</span>
                     <span className="font-display text-lg font-semibold tabular-nums">
                       {formatMoney(totals.totalUsd, currency)}
                     </span>
@@ -233,29 +231,28 @@ export function CheckoutPage() {
             lines={lines}
             totals={totals}
             promoCode={promoCode}
-            title="Payment summary"
+            title={t("checkout.paymentSummary")}
             footer={
               stage === "details" || !payable ? (
                 <>
                   <PromoField subtotalUsd={totals.subtotalUsd} />
                   <Button size="lg" fullWidth onClick={issueQrCode} loading={session.starting}>
                     <QrCode size={17} />
-                    Generate KHQR
+                    {t("checkout.generate")}
                   </Button>
                   <p className="flex items-start gap-2 text-[12px] leading-relaxed text-fg-faint">
                     <Lock size={13} className="mt-0.5 shrink-0" />
-                    Demo build: the code is a valid EMVCo payload, but settlement is simulated
-                    unless a payment API is configured.
+                    {t("checkout.demoNote")}
                   </p>
                 </>
               ) : (
                 <div className="space-y-3">
                   <Button size="lg" fullWidth onClick={issueQrCode} loading={session.starting}>
                     <ArrowRight size={17} />
-                    Regenerate code
+                    {t("checkout.regenerate")}
                   </Button>
                   <ButtonLink to="/cart" variant="ghost" fullWidth size="sm">
-                    Change basket
+                    {t("checkout.changeBasket")}
                   </ButtonLink>
                 </div>
               )
@@ -268,10 +265,11 @@ export function CheckoutPage() {
 }
 
 function CheckoutSteps({ stage, paid }: { stage: "details" | "pay"; paid: boolean }) {
+  const { dict } = useI18n();
   const steps = [
-    { key: "details", label: "Delivery details" },
-    { key: "pay", label: "Scan KHQR" },
-    { key: "receipt", label: "Receipt" },
+    { key: "details", label: dict.checkout.steps[0] },
+    { key: "pay", label: dict.checkout.steps[1] },
+    { key: "receipt", label: dict.checkout.steps[2] },
   ] as const;
 
   const activeIndex = paid ? 2 : stage === "details" ? 0 : 1;

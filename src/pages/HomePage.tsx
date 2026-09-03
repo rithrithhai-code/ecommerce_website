@@ -2,8 +2,6 @@ import {
   ArrowRight,
   BadgeCheck,
   Banknote,
-  Fingerprint,
-  Lock,
   QrCode,
   RotateCw,
   ShieldCheck,
@@ -19,6 +17,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Reveal, RevealGroup } from "@/components/ui/Reveal";
 import { Stars } from "@/components/ui/Stars";
 import { useSpotlight } from "@/hooks/useSpotlight";
+import { useCategories } from "@/i18n/domain";
+import { useI18n } from "@/i18n";
 import { CATEGORIES, PRODUCTS, getFeatured } from "@/data/products";
 import { MERCHANT } from "@/data/merchant";
 import { PAYMENT_WINDOW_SECONDS } from "@/lib/order";
@@ -26,47 +26,18 @@ import { buildKhqrPayload, crc16CcittFalse } from "@/lib/emvco";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import { usePreferences } from "@/store/preferences";
+import type { CategoryId } from "@/types";
 
-const VALUES = [
-  { icon: Truck, title: "Free over $150", body: "Standard delivery across Phnom Penh" },
-  { icon: RotateCw, title: "15-day returns", body: "Unopened boxes, no restocking fee" },
-  { icon: ShieldCheck, title: "Local warranty", body: "12–36 months, serviced in BKK1" },
-  { icon: BadgeCheck, title: "Tax invoices", body: "E-invoice issued with every order" },
-];
+const VALUE_ICONS = [Truck, RotateCw, ShieldCheck, BadgeCheck] as const;
 
-const PARTNERS = [
-  "Bakong",
-  "ABA Bank",
-  "ACLEDA",
-  "Canadia Bank",
-  "wing",
-  "TrueMoney",
-  "Pi Pay",
-  "SIAB",
-];
+const HOW_ICONS = [QrCode, Smartphone, Banknote, BadgeCheck] as const;
 
-const QUOTES = [
-  {
-    quote:
-      "We switched our counter to KHQR last quarter. The amount in the code means nobody keys in a total twice, so the queue moves visibly faster.",
-    name: "Laksmi Rith",
-    role: "Owner, BKK1 electronics shop",
-    rating: 5,
-  },
-  {
-    quote:
-      "Ordered a keyboard at 21:04, scanned with my bank app, and had a receipt before I closed the laptop. The reference number matched instantly.",
-    name: "Chanphaek Tron",
-    role: "Buyer, Siem Reap",
-    rating: 4.5,
-  },
-  {
-    quote:
-      "As a developer I checked the payload before paying. Real EMVCo tags and a correct CRC — most demo checkouts fake that part.",
-    name: "Phearith S.",
-    role: "Software engineer",
-    rating: 5,
-  },
+const PARTNERS = ["Bakong", "ABA Bank", "ACLEDA", "Canadia Bank", "wing", "TrueMoney", "Pi Pay", "SIAB"];
+
+const QUOTE_PEOPLE = [
+  { name: "Laksmi Rith", rating: 5 },
+  { name: "Chanphaek Tron", rating: 4.5 },
+  { name: "Phearith S.", rating: 5 },
 ];
 
 /** A genuine, decodable payload used only to render the hero QR visual. */
@@ -78,20 +49,37 @@ const HERO_PAYLOAD = buildKhqrPayload({
   pointOfInitialization: "11",
 });
 
-const HERO_CRC = crc16CcittFalse(`${HERO_PAYLOAD.slice(0, HERO_PAYLOAD.lastIndexOf("6304") + 4)}`);
+const HERO_CRC = crc16CcittFalse(HERO_PAYLOAD.slice(0, HERO_PAYLOAD.lastIndexOf("6304") + 4));
 
 export function HomePage() {
+  const { t, dict } = useI18n();
+  const categories = useCategories();
   const featured = getFeatured(8);
   const currency = usePreferences((state) => state.currency);
   const onCardMove = useSpotlight();
   const peekA = PRODUCTS[2];
   const peekB = PRODUCTS[4];
 
+  const values = [
+    { icon: VALUE_ICONS[0], title: dict.values.freeOver, body: dict.values.freeOverBody },
+    { icon: VALUE_ICONS[1], title: dict.values.returns, body: dict.values.returnsBody },
+    { icon: VALUE_ICONS[2], title: dict.values.warranty, body: dict.values.warrantyBody },
+    { icon: VALUE_ICONS[3], title: dict.values.invoices, body: dict.values.invoicesBody },
+  ];
+
+  const stats = [
+    { value: t("hero.statWindowValue", { minutes: PAYMENT_WINDOW_SECONDS / 60 }), label: dict.hero.statWindow },
+    { value: "0", label: dict.hero.statNoCard },
+    { value: `${PARTNERS.length}`, label: dict.hero.statWallets },
+  ];
+
+  const howSteps = dict.how.steps.map((step, index) => ({ ...step, icon: HOW_ICONS[index] }));
+  const quotes = dict.quotes.items.map((item, index) => ({ ...item, ...QUOTE_PEOPLE[index] }));
+
   return (
     <>
       {/* ─── Hero ─────────────────────────────────────────────────────────── */}
       <section className="grain relative overflow-hidden">
-        {/* Drifting brand blobs give the page depth instead of a flat fill. */}
         <div
           aria-hidden="true"
           className="animate-drift pointer-events-none absolute -top-32 -left-24 size-[34rem] rounded-full bg-brand/18 blur-[90px]"
@@ -105,40 +93,32 @@ export function HomePage() {
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/8 px-3 py-1.5 text-[12.5px] font-semibold text-brand">
               <span className="size-1.5 animate-blink rounded-full bg-brand" aria-hidden="true" />
-              KHQR &amp; Bakong checkout built in
+              {dict.hero.badge}
             </span>
 
-            <h1 className="mt-6 font-display text-[clamp(2.75rem,6.5vw,4.75rem)] leading-[0.95] font-semibold tracking-tight text-balance">
-              Scan once.
+            <h1 className="mt-6 font-display text-[clamp(2.75rem,6.5vw,4.5rem)] leading-[1.1] font-semibold tracking-tight text-balance">
+              {dict.hero.line1}
               <br />
-              Pay. <span className="text-sheen">Done.</span>
+              {dict.hero.line2} <span className="text-sheen">{dict.hero.line3}</span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-fg-muted">
-              A full storefront in React, TypeScript and Tailwind — catalogue, cart, and a checkout
-              that encodes your order total into a real EMVCo QR. No card forms, no redirect, no
-              amount typed by hand.
-            </p>
+            <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-fg-muted">{dict.hero.lede}</p>
 
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <ButtonLink to="/shop" size="lg" className="shadow-glow">
-                Shop the catalogue
+                {dict.hero.ctaShop}
                 <ArrowRight size={17} />
               </ButtonLink>
               <ButtonLink to="/how-to-pay" size="lg" variant="outline">
                 <QrCode size={16} />
-                How the QR works
+                {dict.hero.ctaHow}
               </ButtonLink>
             </div>
 
             <dl className="mt-11 grid max-w-lg grid-cols-3 gap-px overflow-hidden rounded-2xl border border-line bg-line">
-              {[
-                { value: `${PAYMENT_WINDOW_SECONDS / 60} min`, label: "per generated code" },
-                { value: "0", label: "card details stored" },
-                { value: `${PARTNERS.length}`, label: "wallets accepted" },
-              ].map((stat) => (
+              {stats.map((stat) => (
                 <div key={stat.label} className="bg-surface px-4 py-4">
-                  <dt className="font-display text-[26px] leading-none font-semibold tabular-nums">
+                  <dt className="font-display text-[26px] leading-tight font-semibold tabular-nums">
                     {stat.value}
                   </dt>
                   <dd className="mt-1.5 text-[12px] leading-snug text-fg-faint">{stat.label}</dd>
@@ -177,7 +157,6 @@ export function HomePage() {
                 </span>
               </Link>
 
-              {/* Device */}
               <div className="relative mx-auto w-[292px] sm:w-[318px]">
                 <div className="rounded-[2.9rem] border border-line-strong bg-fg p-2.5 shadow-lift">
                   <div className="grain relative overflow-hidden rounded-[2.35rem] bg-canvas">
@@ -190,18 +169,18 @@ export function HomePage() {
                       />
 
                       <div className="flex items-center justify-between">
-                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.16em] text-fg-faint uppercase">
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.14em] text-fg-faint uppercase">
                           <Smartphone size={12} className="text-brand" />
-                          Scan to pay
+                          {dict.hero.scanToPay}
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/12 px-2 py-1 text-[10px] font-bold tracking-wide text-brand uppercase">
                           <span className="size-1.5 animate-blink rounded-full bg-brand" />
-                          live
+                          {dict.hero.live}
                         </span>
                       </div>
 
                       <div className="relative mt-4 overflow-hidden rounded-2xl bg-white p-3 shadow-soft">
-                        <HeroQrMatrix payload={HERO_PAYLOAD} />
+                        <HeroQrMatrix payload={HERO_PAYLOAD} label={t("hero.illustrativeQr")} />
                         <span
                           aria-hidden="true"
                           className="animate-scan pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-transparent via-brand/35 to-transparent"
@@ -213,10 +192,7 @@ export function HomePage() {
                             "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-xl",
                             "bottom-0 right-0 border-b-2 border-r-2 rounded-br-xl",
                           ].map((position) => (
-                            <span
-                              key={position}
-                              className={cn("absolute size-6 border-brand", position)}
-                            />
+                            <span key={position} className={cn("absolute size-6 border-brand", position)} />
                           ))}
                         </span>
                       </div>
@@ -225,29 +201,26 @@ export function HomePage() {
                         {formatMoney(129, currency)}
                       </p>
                       <p className="mt-1 text-center text-[11.5px] text-fg-faint">
-                        {MERCHANT.name} · amount locked in field 54
+                        {t("hero.amountLocked", { merchant: MERCHANT.name })}
                       </p>
 
                       <div className="mt-5 space-y-2">
                         <div className="flex h-11 items-center justify-center gap-2 rounded-full bg-brand text-[13.5px] font-semibold text-brand-contrast shadow-soft">
-                          <Fingerprint size={16} />
-                          Confirm &amp; pay
+                          {dict.hero.confirmPay}
                         </div>
-                        <p className="flex items-center justify-center gap-1.5 text-[10.5px] text-fg-faint">
-                          <Lock size={11} />
-                          Nothing is charged until you approve in the bank app
-                        </p>
+                        <p className="text-center text-[10.5px] text-fg-faint">{dict.hero.lockNote}</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Floating telemetry pills around the device. */}
                 <div className="animate-float glass absolute -left-8 top-[28%] hidden rounded-2xl border border-line px-3 py-2 shadow-lift md:block">
                   <p className="text-[10px] font-semibold tracking-[0.14em] text-fg-faint uppercase">
-                    EMVCo MPM
+                    {dict.hero.emvcoMpm}
                   </p>
-                  <p className="mt-0.5 font-mono text-[12px] font-semibold">tag 54 · 129.00</p>
+                  <p className="mt-0.5 font-mono text-[12px] font-semibold">
+                    {t("hero.tag54", { amount: "129.00" })}
+                  </p>
                 </div>
 
                 <div
@@ -256,9 +229,11 @@ export function HomePage() {
                 >
                   <p className="flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.14em] text-fg-faint uppercase">
                     <BadgeCheck size={12} className="text-brand" />
-                    checksum
+                    {dict.hero.checksum}
                   </p>
-                  <p className="mt-0.5 font-mono text-[12px] font-semibold">{HERO_CRC} · valid</p>
+                  <p className="mt-0.5 font-mono text-[12px] font-semibold">
+                    {t("hero.checksumValid", { crc: HERO_CRC })}
+                  </p>
                 </div>
               </div>
             </div>
@@ -269,8 +244,8 @@ export function HomePage() {
       {/* ─── Partner marquee ──────────────────────────────────────────────── */}
       <section className="border-y border-line bg-surface/70 py-5">
         <div className="mx-auto flex max-w-[88rem] items-center gap-6 px-4 sm:px-6 lg:px-8">
-          <p className="hidden shrink-0 text-[11.5px] font-semibold tracking-[0.16em] text-fg-faint uppercase sm:block">
-            Accepted by
+          <p className="hidden shrink-0 text-[11.5px] font-semibold tracking-[0.14em] text-fg-faint uppercase sm:block">
+            {dict.partners.acceptedBy}
           </p>
           <div className="edge-fade relative flex-1 overflow-hidden">
             <div className="animate-marquee flex w-max items-center gap-12 pr-12">
@@ -289,17 +264,14 @@ export function HomePage() {
 
       {/* ─── Values ───────────────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[88rem] px-4 py-14 sm:px-6 lg:px-8">
-        <RevealGroup
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-          step={0.06}
-        >
-          {VALUES.map((value) => (
+        <RevealGroup className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" step={0.06}>
+          {values.map((value) => (
             <div
               key={value.title}
-              className="hairline-top group relative flex items-start gap-3 overflow-hidden rounded-card border border-line bg-surface p-5 transition hover:-translate-y-1 hover:shadow-soft"
+              className="hairline-top relative flex items-start gap-3 overflow-hidden rounded-card border border-line bg-surface p-5 transition hover:-translate-y-1 hover:shadow-soft"
             >
               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand/22 to-gold/16 text-brand">
-                <value.icon size={18} />
+                <value.icon size={17} />
               </span>
               <div>
                 <p className="text-[13.5px] font-semibold">{value.title}</p>
@@ -314,23 +286,24 @@ export function HomePage() {
       <section className="mx-auto max-w-[88rem] px-4 pb-16 sm:px-6 lg:px-8">
         <Reveal className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-[11.5px] font-semibold tracking-[0.18em] text-brand uppercase">
-              Catalogue
+            <p className="text-[11.5px] font-semibold tracking-[0.16em] text-brand uppercase">
+              {dict.categories.eyebrow}
             </p>
             <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-              Browse by category
+              {dict.categories.title}
             </h2>
           </div>
           <Link
             to="/shop"
             className="inline-flex items-center gap-1 text-[13.5px] font-medium text-brand transition hover:gap-2.5"
           >
-            All products <ArrowRight size={15} />
+            {dict.categories.allProducts} <ArrowRight size={15} />
           </Link>
         </Reveal>
 
         <RevealGroup className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" step={0.08}>
-          {CATEGORIES.map((category) => {
+          {CATEGORIES.map((category: { id: CategoryId }) => {
+            const localized = categories.find((item) => item.id === category.id);
             const products = PRODUCTS.filter((product) => product.category === category.id);
             const cover = products[0] ?? PRODUCTS[0];
             return (
@@ -347,14 +320,14 @@ export function HomePage() {
                 />
                 <div className="relative z-3 space-y-1 p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-display text-[15px] font-semibold">{category.label}</p>
+                    <p className="font-display text-[15px] font-semibold">{localized?.label}</p>
                     <span className="rounded-full bg-surface-3/90 px-2 py-0.5 text-[11px] font-semibold text-fg-muted tabular-nums backdrop-blur">
                       {products.length}
                     </span>
                   </div>
-                  <p className="text-[12.5px] text-fg-muted">{category.blurb}</p>
+                  <p className="text-[12.5px] text-fg-muted">{localized?.blurb}</p>
                   <p className="flex items-center gap-1 pt-1 text-[12px] font-medium text-brand opacity-0 transition-all duration-300 group-hover:opacity-100">
-                    Shop now <ArrowRight size={13} />
+                    {dict.categories.shopNow} <ArrowRight size={13} />
                   </p>
                 </div>
               </Link>
@@ -367,16 +340,16 @@ export function HomePage() {
       <section className="mx-auto max-w-[88rem] px-4 pb-16 sm:px-6 lg:px-8">
         <Reveal className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-[11.5px] font-semibold tracking-[0.18em] text-gold uppercase">
-              Live from the catalogue
+            <p className="text-[11.5px] font-semibold tracking-[0.16em] text-gold uppercase">
+              {dict.featured.eyebrow}
             </p>
             <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-              Moving fastest this week
+              {dict.featured.title}
             </h2>
           </div>
           <span className="hidden items-center gap-1.5 text-[12.5px] text-fg-faint sm:inline-flex">
             <Sparkles size={13} className="text-gold" />
-            Ranked by rating
+            {dict.featured.ranked}
           </span>
         </Reveal>
         <div className="mt-8">
@@ -394,69 +367,41 @@ export function HomePage() {
             />
             <div className="relative grid gap-10 p-8 sm:p-12 lg:grid-cols-[1fr_1.15fr] lg:items-center">
               <div>
-                <p className="text-[11.5px] font-semibold tracking-[0.18em] text-brand uppercase">
-                  Payment architecture
+                <p className="text-[11.5px] font-semibold tracking-[0.16em] text-brand uppercase">
+                  {dict.how.eyebrow}
                 </p>
                 <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-                  Checkout, in four steps
+                  {dict.how.title}
                 </h2>
-                <p className="mt-4 text-[15px] leading-relaxed text-fg-muted">
-                  JingHUB Express builds an EMVCo Merchant-Presented payload — merchant account info, MCC,
-                  currency, the exact order total, and a CRC-16 checksum — then renders it locally.
-                  Your bank app does the authorisation; the storefront only polls for the result.
-                </p>
+                <p className="mt-4 text-[15px] leading-relaxed text-fg-muted">{dict.how.body}</p>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <ButtonLink to="/how-to-pay" variant="outline">
-                    Read the payment flow
+                    {dict.how.cta}
                     <ArrowRight size={16} />
                   </ButtonLink>
                   <span className="inline-flex items-center gap-2 rounded-full bg-surface-2 px-3.5 text-[12.5px] font-medium text-fg-muted">
                     <Banknote size={14} className="text-brand" />
-                    Settlement in-app, no redirect
+                    {dict.how.chip}
                   </span>
                 </div>
               </div>
 
               <ol className="relative space-y-3">
-                {/* Connector line behind the step markers. */}
                 <span
                   aria-hidden="true"
                   className="absolute top-6 bottom-6 left-[1.65rem] w-px bg-gradient-to-b from-brand/45 via-line to-transparent"
                 />
-                {[
-                  {
-                    icon: QrCode,
-                    title: "Order total becomes the payload",
-                    body: "Subtotal, discount, delivery and GST collapse into one field 54 amount.",
-                  },
-                  {
-                    icon: Smartphone,
-                    title: "Scan in any KHQR-capable app",
-                    body: "Bakong and partner bank wallets read the same EMVCo tags.",
-                  },
-                  {
-                    icon: Banknote,
-                    title: "Amount arrives pre-filled",
-                    body: "The payer confirms rather than types, which removes the miskey risk.",
-                  },
-                  {
-                    icon: BadgeCheck,
-                    title: "Bill reference closes the loop",
-                    body: "Tag 62.01 matches the settlement notice back to this exact order.",
-                  },
-                ].map((step, index) => (
+                {howSteps.map((step, index) => (
                   <li
                     key={step.title}
                     className="relative flex gap-4 rounded-2xl border border-line bg-surface-2/60 p-4 transition hover:border-brand/35 hover:bg-surface-2"
                   >
                     <span className="z-3 flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-brand-strong text-brand-contrast shadow-soft">
-                      <step.icon size={18} />
+                      <step.icon size={17} />
                     </span>
                     <div>
                       <p className="text-[14px] font-semibold">
-                        <span className="mr-2 font-mono text-[11.5px] text-fg-faint">
-                          0{index + 1}
-                        </span>
+                        <span className="mr-2 font-mono text-[11.5px] text-fg-faint">0{index + 1}</span>
                         {step.title}
                       </p>
                       <p className="mt-0.5 text-[13px] leading-snug text-fg-muted">{step.body}</p>
@@ -473,11 +418,11 @@ export function HomePage() {
       <section className="mx-auto max-w-[88rem] px-4 pb-20 sm:px-6 lg:px-8">
         <Reveal>
           <h2 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-            What early shoppers said
+            {dict.quotes.title}
           </h2>
         </Reveal>
         <RevealGroup className="mt-8 grid gap-4 lg:grid-cols-3" step={0.1}>
-          {QUOTES.map((item) => (
+          {quotes.map((item) => (
             <figure
               key={item.name}
               onMouseMove={onCardMove}
@@ -512,23 +457,19 @@ export function HomePage() {
             <div className="relative">
               <span className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-[12px] font-semibold text-brand">
                 <QrCode size={13} />
-                Ready when you are
+                {dict.cta.badge}
               </span>
               <h2 className="mx-auto mt-5 max-w-2xl font-display text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">
-                Put a basket together and watch the total become a{" "}
-                <span className="text-sheen">scannable code</span>
+                {dict.cta.title1} <span className="text-sheen">{dict.cta.title2}</span>
               </h2>
-              <p className="mx-auto mt-4 max-w-xl text-[15px] text-fg-muted">
-                Everything runs client-side in this build — filters, cart maths, payload, checksum
-                and receipt — so you can trace a dollar from the catalogue tile to field 54.
-              </p>
+              <p className="mx-auto mt-4 max-w-xl text-[15px] text-fg-muted">{dict.cta.body}</p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <ButtonLink to="/shop" size="lg" className="shadow-glow">
-                  Start a basket
+                  {dict.cta.start}
                   <ArrowRight size={17} />
                 </ButtonLink>
                 <ButtonLink to="/how-to-pay" size="lg" variant="ghost">
-                  Inspect a sample payload
+                  {dict.cta.inspect}
                 </ButtonLink>
               </div>
             </div>
@@ -541,10 +482,10 @@ export function HomePage() {
 
 /**
  * Small static matrix used only as the hero visual. The checkout QR is generated with the
- * `qrcode` renderer; this one is hand-drawn from the payload so the landing page has no canvas
- * work to do while it is still animating in.
+ * `qrcode` encoder; this one is drawn from the payload bytes so the landing page has no
+ * canvas work to do while it is still animating in.
  */
-function HeroQrMatrix({ payload }: { payload: string }) {
+function HeroQrMatrix({ payload, label }: { payload: string; label: string }) {
   const size = 21;
   const cells: boolean[] = [];
   let hash = 0x811c9dc5;
@@ -576,7 +517,7 @@ function HeroQrMatrix({ payload }: { payload: string }) {
       viewBox={`0 0 ${size} ${size}`}
       className="mx-auto w-full max-w-[150px]"
       role="img"
-      aria-label="Illustrative KHQR code"
+      aria-label={label}
       shapeRendering="crispEdges"
     >
       {cells.map((on, index) => {

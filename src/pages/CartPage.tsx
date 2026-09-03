@@ -12,6 +12,7 @@ import { QtyStepper } from "@/components/ui/QtyStepper";
 import { useCartTotals, useResolvedLines } from "@/hooks/useCartView";
 import { useCart } from "@/store/cart";
 import { useCheckoutDraft } from "@/store/checkout";
+import { useI18n } from "@/i18n";
 
 export function CartPage() {
   const lines = useResolvedLines();
@@ -21,17 +22,18 @@ export function CartPage() {
   const setQty = useCart((state) => state.setQty);
   const remove = useCart((state) => state.remove);
   const clear = useCart((state) => state.clear);
+  const { t } = useI18n();
 
   if (lines.length === 0) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-24 sm:px-6">
         <EmptyState
-          title="Your cart is empty"
-          description="Add something from the catalogue — checkout accepts KHQR and Bakong, so no card details are needed."
+          title={t("cart.emptyPageTitle")}
+          description={t("cart.emptyPageBody")}
           action={
             <ButtonLink to="/shop" size="lg">
               <ShoppingBag size={17} />
-              Browse products
+              {t("cart.browse")}
             </ButtonLink>
           }
         />
@@ -44,16 +46,16 @@ export function CartPage() {
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-            Shopping cart
+            {t("cart.title")}
           </h1>
           <p className="mt-2 text-sm text-fg-muted">
-            {lines.length} line{lines.length === 1 ? "" : "s"} · prices update the QR amount
-            instantly
+            {t("cart.lineCount", { lines: lines.length, linesPlural: lines.length === 1 ? "" : "s" })} ·
+            {t("cart.totalSync")}
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={clear}>
           <Trash2 size={14} />
-          Empty cart
+          {t("cart.emptyCart")}
         </Button>
       </header>
 
@@ -84,7 +86,7 @@ export function CartPage() {
                 </Link>
                 <p className="mt-0.5 text-[13px] text-fg-muted">
                   <Money usd={line.product.priceUsd} className="font-medium text-fg" /> each ·{" "}
-                  {line.product.stock > 0 ? `${line.product.stock} in stock` : "backordered"}
+                  {line.product.stock > 0 ? t("common.inStockCount", { count: line.product.stock }) : t("product.backordered")}
                 </p>
 
                 <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -108,7 +110,7 @@ export function CartPage() {
                   usd={line.lineTotalUsd}
                   className="font-display text-lg font-semibold tabular-nums"
                 />
-                <p className="text-[12px] text-fg-faint">line total</p>
+                <p className="text-[12px] text-fg-faint">{t("product.lineTotal")}</p>
               </div>
             </li>
           ))}
@@ -134,7 +136,7 @@ export function CartPage() {
           />
 
           <div className="rounded-card border border-line bg-surface p-5">
-            <h2 className="mb-3 font-display text-[15px] font-semibold">Delivery method</h2>
+            <h2 className="mb-3 font-display text-[15px] font-semibold">{t("checkout.deliveryMethod")}</h2>
             <ShippingPicker />
           </div>
         </div>

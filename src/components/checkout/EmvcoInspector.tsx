@@ -3,6 +3,7 @@ import { BadgeCheck, ChevronDown, CircleAlert, ScanLine } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 import { decodeKhqrPayload } from "@/lib/emvco";
+import { useI18n, type TranslationKey } from "@/i18n";
 
 /**
  * Decodes the payload that was just encoded and re-computes its CRC.
@@ -12,6 +13,7 @@ import { decodeKhqrPayload } from "@/lib/emvco";
  * missing, instead of guessing against the QR image.
  */
 export function EmvcoInspector({ payload, className }: { payload: string; className?: string }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const decoded = useMemo(() => decodeKhqrPayload(payload), [payload]);
 
@@ -24,7 +26,7 @@ export function EmvcoInspector({ payload, className }: { payload: string; classN
         className="flex w-full items-center gap-3 px-4 py-3 text-left"
       >
         <ScanLine size={16} className="shrink-0 text-brand" />
-        <span className="flex-1 text-[13px] font-semibold">Payload inspector</span>
+        <span className="flex-1 text-[13px] font-semibold">{t("inspector.title")}</span>
         <span
           className={cn(
             "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold",
@@ -34,7 +36,7 @@ export function EmvcoInspector({ payload, className }: { payload: string; classN
           )}
         >
           {decoded.checksumValid ? <BadgeCheck size={12} /> : <CircleAlert size={12} />}
-          CRC {decoded.checksumValid ? "valid" : "invalid"}
+          {decoded.checksumValid ? t("inspector.crcValid") : t("inspector.crcInvalid")}
         </span>
         <ChevronDown
           size={15}
@@ -45,7 +47,7 @@ export function EmvcoInspector({ payload, className }: { payload: string; classN
       {open ? (
         <div className="border-t border-line px-4 py-3">
           <p className="mb-3 text-[12px] text-fg-muted">
-            {payload.length} characters · {decoded.tags.length} top-level tags · checksum{" "}
+            {t("inspector.summary", { chars: payload.length, tags: decoded.tags.length })}{" "}
             <code className="rounded bg-surface px-1 py-0.5 text-[11px]">
               {decoded.actualChecksum || decoded.expectedChecksum}
             </code>
@@ -54,10 +56,10 @@ export function EmvcoInspector({ payload, className }: { payload: string; classN
           <table className="w-full text-[12px]">
             <thead className="text-fg-faint">
               <tr className="text-left">
-                <th className="py-1 pr-2 font-medium">Tag</th>
-                <th className="py-1 pr-2 font-medium">Field</th>
-                <th className="py-1 pr-2 font-medium">Len</th>
-                <th className="py-1 font-medium">Value</th>
+                <th className="py-1 pr-2 font-medium">{t("inspector.tag")}</th>
+                <th className="py-1 pr-2 font-medium">{t("inspector.field")}</th>
+                <th className="py-1 pr-2 font-medium">{t("inspector.length")}</th>
+                <th className="py-1 font-medium">{t("inspector.value")}</th>
               </tr>
             </thead>
             <tbody className="align-top">
@@ -65,7 +67,7 @@ export function EmvcoInspector({ payload, className }: { payload: string; classN
                 <Fragment key={tag.id}>
                   <tr className="border-t border-line/70">
                     <td className="py-1.5 pr-2 font-mono text-brand">{tag.id}</td>
-                    <td className="py-1.5 pr-2 text-fg-muted">{tag.name}</td>
+                    <td className="py-1.5 pr-2 text-fg-muted">{t(`common.emvcoTags.${tag.id}` as TranslationKey)}</td>
                     <td className="py-1.5 pr-2 tabular-nums text-fg-faint">{tag.length}</td>
                     <td className="max-w-[16rem] py-1.5 font-mono break-all">
                       {tag.id === "63" ? tag.value.toUpperCase() : tag.value}
@@ -76,7 +78,7 @@ export function EmvcoInspector({ payload, className }: { payload: string; classN
                       <td className="py-1.5 pr-2 pl-4 font-mono text-fg-faint">
                         └ {sub.id}
                       </td>
-                      <td className="py-1.5 pr-2 text-fg-faint">{sub.name}</td>
+                      <td className="py-1.5 pr-2 text-fg-faint">{t("inspector.subTag", { id: sub.id })}</td>
                       <td className="py-1.5 pr-2 tabular-nums text-fg-faint">{sub.length}</td>
                       <td className="max-w-[16rem] py-1.5 pl-4 font-mono break-all">{sub.value}</td>
                     </tr>

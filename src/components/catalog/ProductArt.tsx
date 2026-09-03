@@ -14,6 +14,7 @@ import {
 
 import { cn } from "@/lib/cn";
 import type { GlyphKey, Product } from "@/types";
+import { useI18n } from "@/i18n";
 
 /**
  * Product artwork.
@@ -50,6 +51,7 @@ export function ProductArt({
   eager?: boolean;
   rounded?: string;
 }) {
+  const { t } = useI18n();
   const [tint, shade] = product.hue;
   const Glyph = GLYPHS[product.glyph];
 
@@ -104,7 +106,7 @@ export function ProductArt({
           style={{ color: `color-mix(in oklab, ${tint} 58%, var(--fg))` }}
         />
       </div>
-      <span className="sr-only">{product.name} product artwork</span>
+      <span className="sr-only">{t("hero.productArtwork", { name: product.name })}</span>
     </div>
   );
 }

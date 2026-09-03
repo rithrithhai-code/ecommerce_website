@@ -13,6 +13,7 @@ import { useCart } from "@/store/cart";
 import { useCheckoutDraft } from "@/store/checkout";
 import { useCartCount, useResolvedLines } from "@/hooks/useCartView";
 import { usePreferences } from "@/store/preferences";
+import { useI18n } from "@/i18n";
 
 /**
  * Slide-over cart. Mounting locks body scroll, and Escape or the scrim closes it, so the
@@ -26,6 +27,7 @@ export function CartDrawer() {
   const lines = useResolvedLines();
   const count = useCartCount();
   const currency = usePreferences((state) => state.currency);
+  const { t } = useI18n();
   const shippingOptionId = useCheckoutDraft((state) => state.shippingOptionId);
 
   const subtotal = lines.reduce((sum, line) => sum + line.lineTotalUsd, 0);
@@ -50,10 +52,10 @@ export function CartDrawer() {
   return (
     <AnimatePresence>
       {open ? (
-        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Shopping cart">
+        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={t("cart.title")}>
           <motion.button
             type="button"
-            aria-label="Close cart"
+            aria-label={t("common.closeCart")}
             className="absolute inset-0 bg-fg/45 backdrop-blur-[3px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -71,16 +73,16 @@ export function CartDrawer() {
           >
             <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
               <div>
-                <h2 className="font-display text-lg font-semibold">Your cart</h2>
+                <h2 className="font-display text-lg font-semibold">{t("cart.title")}</h2>
                 <p className="text-[13px] text-fg-muted">
-                  {count} item{count === 1 ? "" : "s"}
+                  {t("nav.openCart", { count, plural: count === 1 ? t("nav.item") : t("nav.items") }).replace(/^\w+\s/, "")}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={close}
                 className="flex size-9 items-center justify-center rounded-full border border-line text-fg-muted transition hover:text-fg"
-                aria-label="Close cart"
+                aria-label={t("common.closeCart")}
               >
                 <X size={17} />
               </button>
@@ -91,12 +93,10 @@ export function CartDrawer() {
                 <p className="text-[12.5px] text-fg-muted">
                   {remainingForFree > 0 ? (
                     <>
-                      Add{" "}
-                      <span className="font-semibold text-fg">{formatMoney(remainingForFree, currency)}</span>{" "}
-                      for free standard delivery
+                      {t("cart.freeProgress", { amount: formatMoney(remainingForFree, currency) })}
                     </>
                   ) : (
-                    <span className="font-semibold text-brand">Free standard delivery unlocked</span>
+                    <span className="font-semibold text-brand">{t("cart.freeUnlocked")}</span>
                   )}
                 </p>
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-3">
@@ -113,11 +113,11 @@ export function CartDrawer() {
             <div className="flex-1 overflow-y-auto px-5 py-4">
               {lines.length === 0 ? (
                 <EmptyState
-                  title="Nothing here yet"
-                  description="Add a product and it will appear in this drawer."
+                  title={t("cart.empty")}
+                  description={t("cart.emptyBody")}
                   action={
                     <ButtonLink to="/shop" onClick={close} size="sm">
-                      Browse the catalogue
+                      {t("cart.browseCatalogue")}
                     </ButtonLink>
                   }
                   className="border-0 bg-transparent py-8"
@@ -143,7 +143,7 @@ export function CartDrawer() {
                           <button
                             type="button"
                             onClick={() => remove(line.productId)}
-                            aria-label={`Remove ${line.product.name}`}
+                            aria-label={t("cart.remove", { name: line.product.name })}
                             className="text-fg-faint transition hover:text-danger"
                           >
                             <Trash2 size={15} />
@@ -170,17 +170,17 @@ export function CartDrawer() {
               <footer className="space-y-3 border-t border-line bg-surface px-5 py-4">
                 <dl className="space-y-1.5 text-sm">
                   <div className="flex justify-between">
-                    <dt className="text-fg-muted">Subtotal</dt>
+                    <dt className="text-fg-muted">{t("cart.subtotal")}</dt>
                     <dd>
                       <Money usd={subtotal} />
                     </dd>
                   </div>
                   <p className="text-[12px] text-fg-faint">
-                    Delivery and tax are calculated at checkout.
+                    {t("cart.calculated")}
                   </p>
                 </dl>
                 <ButtonLink to="/checkout" onClick={close} fullWidth size="lg">
-                  Checkout
+                  {t("cart.checkout")}
                   <ArrowRight size={17} />
                 </ButtonLink>
                 <button
@@ -188,7 +188,7 @@ export function CartDrawer() {
                   onClick={close}
                   className="w-full text-center text-[13px] text-fg-muted transition hover:text-fg"
                 >
-                  Continue shopping
+                  {t("cart.continueShopping")}
                 </button>
               </footer>
             ) : null}

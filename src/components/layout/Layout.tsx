@@ -4,6 +4,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { useI18n } from "@/i18n";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -20,6 +21,15 @@ function ScrollToTop() {
 }
 
 export function Layout() {
+  const { t, lang, dict } = useI18n();
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.lang = lang === "km" ? "km" : "en";
+    root.style.setProperty("color-scheme", lang === "km" ? "light dark" : "light dark");
+    document.title = dict.meta.title;
+  }, [lang, dict.meta.title]);
+
   return (
     <div className="relative flex min-h-dvh flex-col">
       {/* Ambient layers sit behind everything and ignore pointer events. */}
@@ -30,7 +40,7 @@ export function Layout() {
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-brand focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-brand-contrast"
       >
-        Skip to content
+        {t("meta.skipToContent")}
       </a>
 
       <ScrollToTop />

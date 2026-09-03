@@ -9,16 +9,15 @@ import { useCart } from "@/store/cart";
 import { useSpotlight } from "@/hooks/useSpotlight";
 import { cn } from "@/lib/cn";
 import type { Product } from "@/types";
-
-const BADGE_LABEL = {
-  new: "New",
-  bestseller: "Bestseller",
-  limited: "Limited",
-} as const;
+import { useBadgeLabel, useProductText } from "@/i18n/domain";
+import { useI18n } from "@/i18n";
 
 export function ProductCard({ product, eager = false }: { product: Product; eager?: boolean }) {
   const add = useCart((state) => state.add);
   const onPointerMove = useSpotlight();
+  const { t } = useI18n();
+  const text = useProductText(product);
+  const badgeLabel = useBadgeLabel(product.badge ?? "new");
   const soldOut = product.stock <= 0;
   const href = `/product/${product.slug}`;
 
@@ -59,7 +58,7 @@ export function ProductCard({ product, eager = false }: { product: Product; eage
               tone={product.badge === "limited" ? "gold" : "brand"}
               className="animate-pop backdrop-blur-sm"
             >
-              {BADGE_LABEL[product.badge]}
+              {badgeLabel}
             </Badge>
           ) : null}
         </span>
@@ -67,7 +66,7 @@ export function ProductCard({ product, eager = false }: { product: Product; eage
         {soldOut ? (
           <span className="absolute inset-0 z-[3] flex items-center justify-center bg-canvas/72 backdrop-blur-[2px]">
             <span className="rounded-full bg-fg px-3.5 py-1.5 text-[12px] font-semibold text-canvas">
-              Sold out
+              {t("product.soldOut")}
             </span>
           </span>
         ) : null}
@@ -84,7 +83,7 @@ export function ProductCard({ product, eager = false }: { product: Product; eage
           </Link>
         </h3>
 
-        <p className="line-clamp-2 text-[13px] text-fg-muted">{product.tagline}</p>
+        <p className="line-clamp-2 text-[13px] text-fg-muted">{text.tagline}</p>
 
         <div className="mt-auto flex items-end justify-between gap-3 pt-3">
           <div className="space-y-1">
@@ -98,7 +97,7 @@ export function ProductCard({ product, eager = false }: { product: Product; eage
             type="button"
             onClick={() => add(product.id)}
             disabled={soldOut}
-            aria-label={soldOut ? `${product.name} is sold out` : `Add ${product.name} to cart`}
+            aria-label={soldOut ? t("product.soldOutName", { name: product.name }) : t("product.addToCart", { name: product.name })}
             className={cn(
               "relative flex size-10 shrink-0 items-center justify-center rounded-full border transition duration-300",
               soldOut
@@ -113,7 +112,7 @@ export function ProductCard({ product, eager = false }: { product: Product; eage
         {!soldOut && product.stock <= 6 ? (
           <p className="flex items-center gap-1.5 text-[12px] font-medium text-gold">
             <span className="size-1.5 animate-blink rounded-full bg-gold" aria-hidden="true" />
-            Only {product.stock} left
+            {t("product.onlyLeft", { count: product.stock })}
           </p>
         ) : null}
       </div>

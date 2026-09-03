@@ -22,6 +22,7 @@ npm run dev        # http://localhost:5173
 | Money | Prices held in USD, displayed in USD or KHR, 10% GST, promo codes, three delivery methods |
 | Checkout | Address validation, delivery + promo selection, then a KHQR panel with countdown and status polling |
 | Payment | EMVCo TLV payload built and CRC-16 checked in `src/lib/emvco.ts`, rendered locally with `qrcode` |
+| Languages | English + Khmer, compile-checked dictionary, persisted `<html lang>`, Khmer font stack |
 | Quality | 14 unit tests on the payload builder, `tsc -b` strict, `oxlint`, route-level code splitting |
 
 Try a promo code: `KHQR10` (10% over $100), `SAKOR5` ($5 off), `FREESHIP`.
@@ -36,6 +37,24 @@ Try a promo code: `KHQR10` (10% over $100), `SAKOR5` ($5 off), `FREESHIP`.
 4. On settlement the cart clears and the receipt page opens at `/order/:billReference`.
 5. Expand **Payload inspector** on the payment or receipt screen to read every tag and re-verify
    the checksum. That panel is the fastest way to debug a merchant profile.
+
+## Languages
+
+English and Khmer (ខ្មែរ) ship in the box, with a toggle in the header beside the currency
+switch. The choice is persisted and applied to `<html lang>` before paint, which is what loads
+the Khmer font stack (Kantumruy Pro) and tells a screen reader which voice to use.
+
+- `src/i18n/en.ts` is the dictionary. `km.ts` is typed against it, so a missing translation is a
+  build error rather than a page that silently falls back mid-sentence.
+- `t()` only accepts dot-paths that exist (`"hero.ctaShop"`), with `{name}` interpolation.
+- Lists and tables read the structured dictionary (`dict.how.steps`, `dict.product.viewLabels`).
+- Product copy is overridden per field in `src/data/products.km.ts`; anything absent falls back to
+  English, so translating one product is enough to ship it. Product names stay Latin on purpose —
+  that is how shoppers type them into search.
+- Data modules never hold prose: shipping, promo and validation messages are stored as keys and
+  resolved in the UI, so `src/lib/pricing.ts` and the stores stay locale-free.
+- Dates follow the locale (`km-KH` renders Khmer month names); amounts keep en-US grouping, which
+  is what Cambodian price tags use.
 
 ## Connecting a real payment service
 

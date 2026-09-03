@@ -13,21 +13,25 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Kantumruy+Pro:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <script>
-      // Read the persisted theme before first paint so the correct palette is applied immediately.
+      // Read the persisted theme and language before first paint: the palette avoids a flash,
+      // and lang decides the Khmer font stack plus the screen-reader voice.
       (function () {
         try {
           var raw = localStorage.getItem("jinghub.preferences");
-          var theme = raw ? JSON.parse(raw).state.theme : null;
+          var state = raw ? JSON.parse(raw).state : null;
           var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-          if (theme === "dark" || (!theme && prefersDark)) {
+          if (state?.theme === "dark" || (!state?.theme && prefersDark)) {
             document.documentElement.classList.add("dark");
           }
+          if (state?.language === "km") {
+            document.documentElement.lang = "km";
+          }
         } catch (err) {
-          /* storage unavailable — fall back to the light palette */
+          /* storage unavailable — fall back to the light palette and English */
         }
       })();
     </script>

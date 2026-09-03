@@ -4,7 +4,12 @@
  * for display; see `src/lib/format.ts` and `src/lib/pricing.ts`.
  */
 
+import type { TranslationKey } from "@/i18n/en";
+
 export type CurrencyCode = "USD" | "KHR";
+
+/** Supported locales: English and Khmer. */
+export type Lang = "en" | "km";
 
 export type Theme = "light" | "dark";
 
@@ -66,8 +71,9 @@ export type ShippingOptionId = "standard" | "express" | "pickup";
 
 export interface ShippingOption {
   id: ShippingOptionId;
-  label: string;
-  eta: string;
+  /** Translation keys resolved by `useShippingOptions` in src/i18n/domain.ts. */
+  labelKey: TranslationKey;
+  etaKey: TranslationKey;
   priceUsd: number;
   freeOverUsd?: number;
 }

@@ -1,6 +1,7 @@
 import { Minus, Plus } from "lucide-react";
 
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n";
 
 export function QtyStepper({
   value,
@@ -8,15 +9,14 @@ export function QtyStepper({
   max = 99,
   onChange,
   size = "md",
-  label = "Quantity",
 }: {
   value: number;
   min?: number;
   max?: number;
   onChange: (next: number) => void;
   size?: "sm" | "md";
-  label?: string;
 }) {
+  const { t } = useI18n();
   const control = size === "sm" ? "size-7" : "size-9";
 
   return (
@@ -34,7 +34,7 @@ export function QtyStepper({
         )}
         onClick={() => onChange(value - 1)}
         disabled={value <= min}
-        aria-label={`Decrease ${label.toLowerCase()}`}
+        aria-label={t("product.decrease")}
       >
         <Minus size={size === "sm" ? 13 : 15} strokeWidth={2} />
       </button>
@@ -52,7 +52,7 @@ export function QtyStepper({
         )}
         onClick={() => onChange(value + 1)}
         disabled={value >= max}
-        aria-label={`Increase ${label.toLowerCase()}`}
+        aria-label={t("product.increase")}
       >
         <Plus size={size === "sm" ? 13 : 15} strokeWidth={2} />
       </button>

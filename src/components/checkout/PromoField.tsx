@@ -3,16 +3,21 @@ import { BadgePercent, X } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { PROMOS, findPromo, promoRejection } from "@/lib/pricing";
+import { usePromoLabel } from "@/i18n/domain";
+import { useI18n } from "@/i18n";
 import { cn } from "@/lib/cn";
 import { useCheckoutDraft } from "@/store/checkout";
+import type { Params, TranslationKey } from "@/i18n/en";
 
 /** Promo entry. Validation mirrors `computeTotals`, so an accepted code always applies. */
 export function PromoField({ subtotalUsd }: { subtotalUsd: number }) {
   const [entry, setEntry] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ key: TranslationKey; params?: Params } | null>(null);
   const promoCode = useCheckoutDraft((state) => state.promoCode);
   const setPromoCode = useCheckoutDraft((state) => state.setPromoCode);
+  const { t } = useI18n();
   const applied = findPromo(promoCode);
+  const appliedLabel = usePromoLabel(applied?.code ?? "");
 
   if (applied) {
     return (
@@ -20,7 +25,7 @@ export function PromoField({ subtotalUsd }: { subtotalUsd: number }) {
         <BadgePercent size={16} className="shrink-0 text-brand" />
         <p className="min-w-0 flex-1 text-[13px]">
           <span className="font-semibold text-brand">{applied.code}</span>{" "}
-          <span className="text-fg-muted">· {applied.label}</span>
+          <span className="text-fg-muted">· {appliedLabel}</span>
         </p>
         <button
           type="button"
@@ -29,7 +34,7 @@ export function PromoField({ subtotalUsd }: { subtotalUsd: number }) {
             setEntry("");
             setError(null);
           }}
-          aria-label={`Remove promo ${applied.code}`}
+          aria-label={t("promo.remove", { code: applied.code })}
           className="text-fg-faint transition hover:text-danger"
         >
           <X size={15} />
@@ -64,8 +69,8 @@ export function PromoField({ subtotalUsd }: { subtotalUsd: number }) {
             setEntry(event.target.value.toUpperCase());
             setError(null);
           }}
-          placeholder="Promo code"
-          aria-label="Promo code"
+          placeholder={t("promo.placeholder")}
+          aria-label={t("promo.placeholder")}
           aria-invalid={error ? true : undefined}
           className={cn(
             "h-11 min-w-0 flex-1 rounded-2xl border bg-surface-2 px-3.5 text-sm uppercase tracking-wide placeholder:normal-case placeholder:tracking-normal placeholder:text-fg-faint focus:bg-surface focus:outline-none focus:ring-4 focus:ring-brand/10",
@@ -73,17 +78,17 @@ export function PromoField({ subtotalUsd }: { subtotalUsd: number }) {
           )}
         />
         <Button type="submit" variant="outline" disabled={!entry.trim()}>
-          Apply
+          {t("promo.apply")}
         </Button>
       </form>
 
       {error ? (
         <p className="text-[12px] font-medium text-danger" role="alert">
-          {error}
+          {t(error.key, error.params)}
         </p>
       ) : (
         <p className="flex flex-wrap items-center gap-1.5 text-[12px] text-fg-faint">
-          Try
+          {t("promo.try")}
           {PROMOS.map((promo) => (
             <button
               key={promo.code}

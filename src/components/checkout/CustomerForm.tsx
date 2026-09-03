@@ -1,5 +1,6 @@
 import { TextAreaField, TextField } from "@/components/ui/Field";
 import { useCheckoutDraft, validateCustomer } from "@/store/checkout";
+import { useI18n } from "@/i18n";
 
 /**
  * Delivery and contact capture. Field-level rules live in `validateCustomer` so the
@@ -13,40 +14,43 @@ export function CustomerForm({ addressRequired }: { addressRequired: boolean }) 
   const markTouched = useCheckoutDraft((state) => state.markTouched);
 
   const { errors } = validateCustomer(customer, addressRequired);
-  const errorFor = (field: keyof typeof customer) =>
-    touched[field] ? errors[field] : undefined;
+  const { t } = useI18n();
+  const errorFor = (field: keyof typeof customer) => {
+    const key = touched[field] ? errors[field] : undefined;
+    return key ? t(key) : undefined;
+  };
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <TextField
-          label="Full name"
+          label={t("form.fullName")}
           name="fullName"
           autoComplete="name"
-          placeholder="Sokha Chan"
+          placeholder={t("form.fullNamePlaceholder")}
           value={customer.fullName}
           error={errorFor("fullName")}
           onChange={(event) => setField("fullName", event.target.value)}
           onBlur={() => markTouched(["fullName"])}
         />
         <TextField
-          label="Email for the receipt"
+          label={t("form.email")}
           name="email"
           type="email"
           autoComplete="email"
-          placeholder="sokha@example.com"
+          placeholder={t("form.emailPlaceholder")}
           value={customer.email}
           error={errorFor("email")}
           onChange={(event) => setField("email", event.target.value)}
           onBlur={() => markTouched(["email"])}
         />
         <TextField
-          label="Mobile number"
+          label={t("form.phone")}
           name="phone"
           type="tel"
           autoComplete="tel"
-          placeholder="012 345 678"
-          hint="The bank sends the payment notice here"
+          placeholder={t("form.phonePlaceholder")}
+          hint={t("form.phoneHint")}
           value={customer.phone}
           error={errorFor("phone")}
           onChange={(event) => setField("phone", event.target.value)}
@@ -54,10 +58,10 @@ export function CustomerForm({ addressRequired }: { addressRequired: boolean }) 
         />
         {addressRequired ? (
           <TextField
-            label="City or Khan"
+            label={t("form.city")}
             name="city"
             autoComplete="address-level2"
-            placeholder="Phnom Penh"
+            placeholder={t("form.cityPlaceholder")}
             value={customer.city}
             error={errorFor("city")}
             onChange={(event) => setField("city", event.target.value)}
@@ -69,21 +73,21 @@ export function CustomerForm({ addressRequired }: { addressRequired: boolean }) 
       {addressRequired ? (
         <div className="grid gap-4 sm:grid-cols-[1.6fr_1fr]">
           <TextField
-            label="Street address"
+            label={t("form.street")}
             name="addressLine"
             autoComplete="street-address"
-            placeholder="No. 24, Street 63, Sangkat Boeung Keng Kang 1"
+            placeholder={t("form.streetPlaceholder")}
             value={customer.addressLine}
             error={errorFor("addressLine")}
             onChange={(event) => setField("addressLine", event.target.value)}
             onBlur={() => markTouched(["addressLine"])}
           />
           <TextField
-            label="Postal code"
+            label={t("form.postal")}
             name="postalCode"
             autoComplete="postal-code"
             inputMode="numeric"
-            placeholder="12302"
+            placeholder={t("form.postalPlaceholder")}
             value={customer.postalCode}
             error={errorFor("postalCode")}
             onChange={(event) => setField("postalCode", event.target.value)}
@@ -93,9 +97,9 @@ export function CustomerForm({ addressRequired }: { addressRequired: boolean }) 
       ) : null}
 
       <TextAreaField
-        label="Delivery note (optional)"
+        label={t("form.note")}
         name="note"
-        placeholder="Landmark, gate code, or a time to call before arriving"
+        placeholder={t("form.notePlaceholder")}
         value={customer.note}
         onChange={(event) => setField("note", event.target.value)}
       />

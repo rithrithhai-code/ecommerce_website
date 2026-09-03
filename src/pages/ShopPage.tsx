@@ -4,27 +4,32 @@ import { useSearchParams } from "react-router-dom";
 
 import { ProductGrid, ProductGridSkeleton } from "@/components/catalog/ProductGrid";
 import { Button } from "@/components/ui/Button";
-import { CATEGORIES, PRICE_BOUNDS_USD, PRODUCTS, searchProducts } from "@/data/products";
+import { PRICE_BOUNDS_USD, PRODUCTS, searchProducts } from "@/data/products";
 import { formatMoney } from "@/lib/format";
 import { chipClasses } from "@/lib/styles";
 import { usePreferences } from "@/store/preferences";
+import { useCategories } from "@/i18n/domain";
+import { useI18n } from "@/i18n";
+import type { TranslationKey } from "@/i18n/en";
 import type { CategoryId } from "@/types";
 
 type SortKey = "featured" | "price-asc" | "price-desc" | "rating" | "newest";
 
-const SORTS: Array<{ value: SortKey; label: string }> = [
-  { value: "featured", label: "Featured" },
-  { value: "price-asc", label: "Price: low to high" },
-  { value: "price-desc", label: "Price: high to low" },
-  { value: "rating", label: "Highest rated" },
-  { value: "newest", label: "Newest in" },
-];
+const SORT_KEYS = {
+  featured: "shop.sorts.featured",
+  "price-asc": "shop.sorts.priceAsc",
+  "price-desc": "shop.sorts.priceDesc",
+  rating: "shop.sorts.rating",
+  newest: "shop.sorts.newest",
+} as const satisfies Record<SortKey, TranslationKey>;
 
 const BADGE_PRIORITY: Record<string, number> = { new: 0, limited: 1, bestseller: 2 };
 
 export function ShopPage() {
   const [params, setParams] = useSearchParams();
   const currency = usePreferences((state) => state.currency);
+  const { t } = useI18n();
+  const categories = useCategories();
 
   const query = params.get("q") ?? "";
   const activeCategory = params.get("category") as CategoryId | null;
@@ -104,14 +109,16 @@ export function ShopPage() {
     <div className="mx-auto max-w-[88rem] px-4 py-10 sm:px-6 lg:px-8">
       <header className="mb-8">
         <p className="text-[12px] font-semibold tracking-[0.16em] text-fg-faint uppercase">
-          Catalogue
+          {t("shop.eyebrow")}
         </p>
         <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-          {query ? `Results for “${query}”` : (CATEGORIES.find((c) => c.id === activeCategory)?.label ?? "Every product")}
+          {query
+            ? t("shop.resultsFor", { query })
+            : (categories.find((c) => c.id === activeCategory)?.label ?? t("shop.everyProduct"))}
         </h1>
         <p className="mt-2 text-sm text-fg-muted">
-          {results.length} of {PRODUCTS.length} products
-          {filtersActive ? " · filtered" : ""}
+          {t("shop.countOf", { shown: results.length, total: PRODUCTS.length })}
+          {filtersActive ? ` · ${t("shop.filtered")}` : ""}
         </p>
       </header>
 
@@ -120,7 +127,7 @@ export function ShopPage() {
           <div>
             <h2 className="mb-3 flex items-center gap-2 text-[13px] font-semibold tracking-wide uppercase">
               <SlidersHorizontal size={14} className="text-brand" />
-              Category
+              {t("shop.filters")}
             </h2>
             <div className="flex flex-wrap gap-2">
               <button
@@ -128,9 +135,9 @@ export function ShopPage() {
                 className={chipClasses(!activeCategory)}
                 onClick={() => update({ category: null })}
               >
-                All
+                {t("shop.all")}
               </button>
-              {CATEGORIES.map((category) => (
+              {categories.map((category) => (
                 <button
                   key={category.id}
                   type="button"
@@ -148,7 +155,7 @@ export function ShopPage() {
               htmlFor="max-price"
               className="mb-2 flex items-center justify-between text-[13px] font-semibold tracking-wide uppercase"
             >
-              Max price
+              {t("shop.maxPrice")}
               <span className="font-medium text-brand normal-case tabular-nums">
                 {formatMoney(maxPrice, currency)}
               </span>
@@ -169,7 +176,7 @@ export function ShopPage() {
           </div>
 
           <div>
-            <h2 className="mb-3 text-[13px] font-semibold tracking-wide uppercase">Availability</h2>
+            <h2 className="mb-3 text-[13px] font-semibold tracking-wide uppercase">{t("shop.availability")}</h2>
             <label className="flex cursor-pointer items-center gap-2.5 text-sm text-fg-muted">
               <input
                 type="checkbox"
@@ -177,7 +184,7 @@ export function ShopPage() {
                 onChange={(event) => update({ stock: event.target.checked ? "in" : null })}
                 className="size-4 rounded border-line-strong bg-surface accent-[var(--brand)]"
               />
-              In stock only
+              {t("shop.inStockOnly")}
             </label>
           </div>
 
@@ -190,7 +197,7 @@ export function ShopPage() {
               }
             >
               <X size={14} />
-              Clear filters
+              {t("shop.clearFilters")}
             </Button>
           ) : null}
         </aside>
@@ -198,18 +205,18 @@ export function ShopPage() {
         <div>
           <div className="mb-5 flex items-center justify-between gap-4">
             <p className="text-[13px] text-fg-faint">
-              {settling ? "Updating…" : `${results.length} shown`}
+              {settling ? t("shop.updating") : t("shop.showing", { count: results.length })}
             </p>
             <label className="flex items-center gap-2 text-[13px] text-fg-muted">
-              Sort
+              {t("shop.sort")}
               <select
                 value={sort}
                 onChange={(event) => update({ sort: event.target.value })}
                 className="h-9 rounded-full border border-line bg-surface px-3 text-[13px] font-medium text-fg focus:border-brand focus:outline-none"
               >
-                {SORTS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {(Object.keys(SORT_KEYS) as SortKey[]).map((value) => (
+                  <option key={value} value={value}>
+                    {t(SORT_KEYS[value])}
                   </option>
                 ))}
               </select>
@@ -222,16 +229,16 @@ export function ShopPage() {
             <ProductGrid products={results} columns="default" />
           ) : (
             <div className="rounded-card border border-dashed border-line-strong bg-surface-2/60 px-6 py-16 text-center">
-              <h2 className="font-display text-lg font-semibold">No products match those filters</h2>
+              <h2 className="font-display text-lg font-semibold">{t("shop.emptyTitle")}</h2>
               <p className="mx-auto mt-2 max-w-sm text-sm text-fg-muted">
-                Try widening the price ceiling or clearing the search term.
+                {t("shop.emptyBody")}
               </p>
               <Button
                 className="mt-5"
                 variant="outline"
                 onClick={() => update({ q: null, category: null, max: null, stock: null })}
               >
-                Reset filters
+                {t("shop.resetFilters")}
               </Button>
             </div>
           )}
