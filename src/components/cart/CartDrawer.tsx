@@ -127,11 +127,11 @@ export function CartDrawer() {
                   {lines.map((line) => (
                     <li
                       key={line.productId}
-                      className="flex gap-3 rounded-2xl border border-line bg-surface p-3"
+                      className="group flex gap-3 rounded-2xl border border-line bg-surface p-3 transition hover:border-line-strong hover:shadow-soft"
                     >
                       <ProductArt
                         product={line.product}
-                        className="size-20 shrink-0"
+                        className="size-20 shrink-0 transition-transform duration-500 group-hover:scale-[1.07]"
                         rounded="rounded-xl"
                       />
                       <div className="min-w-0 flex-1">

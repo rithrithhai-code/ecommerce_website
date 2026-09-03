@@ -2,6 +2,14 @@ import type { ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
 
 /**
+ * Reveals need IntersectionObserver. Where it is missing — an old browser, a non-DOM host —
+ * content renders statically instead of being stranded at opacity 0.
+ */
+function canReveal(): boolean {
+  return typeof window !== "undefined" && "IntersectionObserver" in window;
+}
+
+/**
  * Scroll-reveal wrapper. `once: true` means content animates in as it enters the viewport and
  * then stays put, and users who prefer reduced motion get the plain static tree.
  */
@@ -18,7 +26,7 @@ export function Reveal({
 }) {
   const reduceMotion = useReducedMotion();
 
-  if (reduceMotion) {
+  if (reduceMotion || !canReveal()) {
     return <div className={className}>{children}</div>;
   }
 
@@ -46,11 +54,12 @@ export function RevealGroup({
   step?: number;
 }) {
   const reduceMotion = useReducedMotion();
+  const reveal = canReveal() && !reduceMotion;
 
   return (
     <div className={className}>
       {children.map((child, index) =>
-        reduceMotion ? (
+        !reveal ? (
           <div key={index}>{child}</div>
         ) : (
           <motion.div

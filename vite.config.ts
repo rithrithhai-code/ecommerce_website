@@ -21,6 +21,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     include: ["src/**/*.test.{ts,tsx}"],
+    setupFiles: ["src/test/setup.ts"],
     environmentOptions: {
       // jsdom only provides a usable localStorage under a real origin, which zustand's
       // persist middleware relies on.

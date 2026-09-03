@@ -57,6 +57,7 @@ export function PaymentPanel({
           payload={payload}
           amountLabel={amountLabel}
           merchantName={merchantName}
+          scanning={!paid && !expired}
           overlay={
             expired ? (
               <motion.div
@@ -118,7 +119,9 @@ export function PaymentPanel({
           <p className="text-[12px] font-semibold tracking-[0.14em] text-fg-faint uppercase">
             Pay exactly
           </p>
-          <p className="font-display text-4xl font-semibold tracking-tight">{amountLabel}</p>
+          <p className="text-sheen font-display text-4xl font-semibold tracking-tight tabular-nums">
+            {amountLabel}
+          </p>
           <p className="mt-1 text-[13px] text-fg-muted">
             {currency === "USD"
               ? `≈ ${formatMoney(amountUsd, "KHR")} at the indicative rate`
@@ -207,6 +210,12 @@ function StatusLine({
     <div className={cn("flex items-center gap-2.5 rounded-2xl border px-4 py-3 text-[13px]", tone)}>
       {icon}
       <span className="flex-1 font-medium">{text}</span>
+      {!paid && !expired ? (
+        <span className="flex items-center gap-1.5 text-[10.5px] font-semibold tracking-[0.14em] text-brand uppercase">
+          <span className="size-1.5 animate-blink rounded-full bg-brand" aria-hidden="true" />
+          live
+        </span>
+      ) : null}
       {session.lastCheckedAt && !paid && !expired ? (
         <span className="text-[11.5px] text-fg-faint">
           checked {new Date(session.lastCheckedAt).toLocaleTimeString("en-GB")}

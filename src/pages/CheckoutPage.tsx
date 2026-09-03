@@ -137,7 +137,7 @@ export function CheckoutPage() {
             <>
               <section
                 id="checkout-details"
-                className="rounded-card border border-line bg-surface p-5 sm:p-6"
+                className="hairline-top relative overflow-hidden rounded-card border border-line bg-surface p-5 sm:p-6"
               >
                 <div className="mb-5 flex items-start justify-between gap-4">
                   <div>
@@ -150,7 +150,7 @@ export function CheckoutPage() {
                 <CustomerForm addressRequired={addressRequired} />
               </section>
 
-              <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+              <section className="hairline-top relative overflow-hidden rounded-card border border-line bg-surface p-5 sm:p-6">
                 <h2 className="mb-1 font-display text-lg font-semibold">Delivery method</h2>
                 <p className="mb-4 text-[13px] text-fg-muted">
                   {shipping.label} · {shipping.eta}
@@ -158,7 +158,7 @@ export function CheckoutPage() {
                 <ShippingPicker />
               </section>
 
-              <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+              <section className="hairline-top relative overflow-hidden rounded-card border border-line bg-surface p-5 sm:p-6">
                 <h2 className="mb-3 font-display text-lg font-semibold">Ready to pay?</h2>
                 <ul className="mb-5 space-y-2 text-[13.5px] text-fg-muted">
                   {[
@@ -189,7 +189,7 @@ export function CheckoutPage() {
               </section>
             </>
           ) : (
-            <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+            <section className="hairline-top relative overflow-hidden rounded-card border border-line bg-surface p-5 sm:p-6">
               <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="flex items-center gap-2 font-display text-lg font-semibold">

@@ -5,6 +5,7 @@ import {
   RotateCw,
   ShieldCheck,
   ShoppingBag,
+  QrCode,
   Truck,
   Zap,
 } from "lucide-react";
@@ -22,6 +23,7 @@ import { CATEGORY_LABEL, getProductBySlug, getRelated } from "@/data/products";
 import { SUPPORT_CONTACT } from "@/data/merchant";
 import { cn } from "@/lib/cn";
 import { useCart } from "@/store/cart";
+import { useSpotlight } from "@/hooks/useSpotlight";
 import type { Product } from "@/types";
 
 /** Camera angles faked with transforms so the gallery is interactive without photo assets. */
@@ -39,6 +41,7 @@ export function ProductPage() {
   const add = useCart((state) => state.add);
   const [qty, setQty] = useState(1);
   const [view, setView] = useState(0);
+  const onPointerMove = useSpotlight();
 
   if (!product) {
     return (
@@ -80,10 +83,20 @@ export function ProductPage() {
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-16">
         {/* Gallery */}
         <div className="space-y-4">
-          <div className="group relative overflow-hidden rounded-card border border-line bg-surface">
+          <div
+            onMouseMove={onPointerMove}
+            className="group spotlight hairline-top relative overflow-hidden rounded-card border border-line bg-surface"
+          >
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-[2] opacity-0 blur-2xl transition-opacity duration-700 group-hover:opacity-100"
+              style={{
+                background: `radial-gradient(55% 55% at 50% 55%, ${product.hue[0]}38, transparent 72%)`,
+              }}
+            />
             <div className="aspect-square w-full overflow-hidden">
               <div
-                className="size-full transition-transform duration-500 ease-out"
+                className="size-full transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
                 style={{ transform: VIEWS[view].transform }}
               >
                 <ProductArt product={product} eager rounded="rounded-none" className="size-full" />
@@ -105,10 +118,10 @@ export function ProductPage() {
                 aria-selected={index === view}
                 onClick={() => setView(index)}
                 className={cn(
-                  "group relative h-20 w-20 overflow-hidden rounded-2xl border transition",
+                  "group relative h-20 w-20 overflow-hidden rounded-2xl border transition duration-300 hover:-translate-y-0.5",
                   index === view
-                    ? "border-brand ring-2 ring-brand/20"
-                    : "border-line opacity-75 hover:opacity-100",
+                    ? "border-brand shadow-glow ring-2 ring-brand/20"
+                    : "border-line opacity-70 hover:border-line-strong hover:opacity-100",
                 )}
               >
                 <div
@@ -117,7 +130,7 @@ export function ProductPage() {
                 >
                   <ProductArt product={product} rounded="rounded-none" className="size-full" />
                 </div>
-                <span className="absolute inset-x-0 bottom-0 bg-canvas/85 py-0.5 text-[10.5px] font-medium">
+                <span className="glass absolute inset-x-0 bottom-0 py-0.5 text-center text-[10.5px] font-medium">
                   {item.label}
                 </span>
               </button>
@@ -126,7 +139,7 @@ export function ProductPage() {
         </div>
 
         {/* Buy column */}
-        <div>
+        <div className="lg:sticky lg:top-28 lg:self-start">
           <p className="text-[12px] font-semibold tracking-[0.16em] text-fg-faint uppercase">
             {product.brand}
           </p>
@@ -137,6 +150,10 @@ export function ProductPage() {
 
           <div className="mt-4 flex flex-wrap items-center gap-4">
             <Stars rating={product.rating} reviews={product.reviews} />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/25 bg-brand/8 px-2.5 py-1 text-[11.5px] font-semibold text-brand">
+              <QrCode size={12} />
+              KHQR at checkout
+            </span>
             {product.badge ? (
               <Badge tone={product.badge === "limited" ? "gold" : "brand"}>
                 {product.badge === "new"
@@ -169,7 +186,7 @@ export function ProductPage() {
             ))}
           </ul>
 
-          <div className="mt-8 rounded-card border border-line bg-surface p-5">
+          <div className="hairline-top relative mt-8 overflow-hidden rounded-card border border-line bg-surface p-5 shadow-soft">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-[13px] font-semibold">
@@ -230,7 +247,7 @@ export function ProductPage() {
           <h2 className="font-display text-xl font-semibold tracking-tight">Specifications</h2>
           <dl className="mt-4 divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
             {Object.entries(product.specs).map(([key, value]) => (
-              <div key={key} className="flex items-baseline gap-4 px-5 py-3.5 text-sm">
+              <div key={key} className="flex items-baseline gap-4 px-5 py-3.5 text-sm transition-colors hover:bg-surface-2/70">
                 <dt className="w-40 shrink-0 text-fg-muted">{key}</dt>
                 <dd className="font-medium">{value}</dd>
               </div>

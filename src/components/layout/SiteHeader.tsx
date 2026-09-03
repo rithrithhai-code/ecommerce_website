@@ -75,8 +75,8 @@ function ThemeSwitch() {
 
 function AnnouncementBar() {
   return (
-    <div className="overflow-hidden border-b border-line bg-fg py-2 text-canvas">
-      <div className="flex w-max animate-marquee gap-10 pr-10">
+    <div className="overflow-hidden border-b border-line bg-gradient-to-r from-fg via-fg to-brand-strong py-2 text-canvas">
+      <div className="animate-marquee flex w-max gap-10 pr-10 hover:[animation-play-state:paused]">
         {[...TICKER, ...TICKER, ...TICKER, ...TICKER].map((item, index) => (
           <span key={index} className="flex items-center gap-2 text-[12px] font-medium tracking-wide">
             <span className="size-1 rounded-full bg-brand" aria-hidden="true" />
@@ -117,7 +117,7 @@ export function SiteHeader() {
         className={cn(
           "border-b transition-colors duration-300",
           scrolled
-            ? "border-line bg-canvas/85 backdrop-blur-xl"
+            ? "glass border-line"
             : "border-transparent bg-canvas/60 backdrop-blur-sm",
         )}
       >
@@ -141,10 +141,10 @@ export function SiteHeader() {
                 to={item.to}
                 className={({ isActive }) =>
                   cn(
-                    "rounded-full px-3 py-2 text-sm font-medium transition",
+                    "relative px-3 py-2 text-sm font-medium transition after:absolute after:inset-x-3 after:-bottom-px after:h-px after:origin-left after:scale-x-0 after:bg-gradient-to-r after:from-brand after:to-gold after:transition-transform after:duration-300",
                     isActive
-                      ? "bg-surface-2 text-fg"
-                      : "text-fg-muted hover:bg-surface-2/70 hover:text-fg",
+                      ? "text-fg after:scale-x-100"
+                      : "text-fg-muted hover:text-fg hover:after:scale-x-100",
                   )
                 }
               >
@@ -165,7 +165,7 @@ export function SiteHeader() {
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search headphones, laptops…"
                 aria-label="Search products"
-                className="h-10 w-full rounded-full border border-line bg-surface-2 pr-3 pl-9 text-sm transition placeholder:text-fg-faint focus:border-brand focus:bg-surface focus:outline-none focus:ring-4 focus:ring-brand/10"
+                className="h-10 w-full rounded-full border border-line bg-surface-2/80 pr-3 pl-9 text-sm transition placeholder:text-fg-faint hover:border-line-strong focus:border-brand focus:bg-surface focus:shadow-soft focus:ring-4 focus:ring-brand/12 focus:outline-none"
               />
             </div>
           </form>
@@ -181,11 +181,13 @@ export function SiteHeader() {
             <button
               type="button"
               onClick={openDrawer}
-              className="relative flex h-9 items-center gap-2 rounded-full bg-fg px-3.5 text-[13px] font-semibold text-canvas transition hover:opacity-90"
+              className="relative flex h-9 items-center gap-2 rounded-full bg-fg px-3.5 text-[13px] font-semibold text-canvas transition hover:scale-[1.04] hover:opacity-95 active:scale-100"
               aria-label={`Open cart, ${count} item${count === 1 ? "" : "s"}`}
             >
               <ShoppingBag size={16} />
-              <span className="tabular-nums">{count}</span>
+              <span key={count} className="animate-pop tabular-nums">
+                {count}
+              </span>
               {count > 0 ? (
                 <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-brand ring-2 ring-canvas" />
               ) : null}

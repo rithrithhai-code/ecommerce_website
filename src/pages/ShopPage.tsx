@@ -116,7 +116,7 @@ export function ShopPage() {
       </header>
 
       <div className="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">
+        <aside className="glass space-y-6 self-start rounded-card border border-line p-5 shadow-soft lg:sticky lg:top-28">
           <div>
             <h2 className="mb-3 flex items-center gap-2 text-[13px] font-semibold tracking-wide uppercase">
               <SlidersHorizontal size={14} className="text-brand" />

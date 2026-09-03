@@ -2,10 +2,13 @@ import {
   ArrowRight,
   BadgeCheck,
   Banknote,
+  Fingerprint,
+  Lock,
   QrCode,
   RotateCw,
   ShieldCheck,
   Smartphone,
+  Sparkles,
   Truck,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -13,12 +16,15 @@ import { Link } from "react-router-dom";
 import { ProductArt } from "@/components/catalog/ProductArt";
 import { ProductGrid } from "@/components/catalog/ProductGrid";
 import { ButtonLink } from "@/components/ui/Button";
+import { Reveal, RevealGroup } from "@/components/ui/Reveal";
 import { Stars } from "@/components/ui/Stars";
+import { useSpotlight } from "@/hooks/useSpotlight";
 import { CATEGORIES, PRODUCTS, getFeatured } from "@/data/products";
 import { MERCHANT } from "@/data/merchant";
 import { PAYMENT_WINDOW_SECONDS } from "@/lib/order";
-import { buildKhqrPayload } from "@/lib/emvco";
+import { buildKhqrPayload, crc16CcittFalse } from "@/lib/emvco";
 import { formatMoney } from "@/lib/format";
+import { cn } from "@/lib/cn";
 import { usePreferences } from "@/store/preferences";
 
 const VALUES = [
@@ -26,6 +32,17 @@ const VALUES = [
   { icon: RotateCw, title: "15-day returns", body: "Unopened boxes, no restocking fee" },
   { icon: ShieldCheck, title: "Local warranty", body: "12–36 months, serviced in BKK1" },
   { icon: BadgeCheck, title: "Tax invoices", body: "E-invoice issued with every order" },
+];
+
+const PARTNERS = [
+  "Bakong",
+  "ABA Bank",
+  "ACLEDA",
+  "Canadia Bank",
+  "wing",
+  "TrueMoney",
+  "Pi Pay",
+  "SIAB",
 ];
 
 const QUOTES = [
@@ -61,27 +78,40 @@ const HERO_PAYLOAD = buildKhqrPayload({
   pointOfInitialization: "11",
 });
 
+const HERO_CRC = crc16CcittFalse(`${HERO_PAYLOAD.slice(0, HERO_PAYLOAD.lastIndexOf("6304") + 4)}`);
+
 export function HomePage() {
   const featured = getFeatured(8);
   const currency = usePreferences((state) => state.currency);
-  const heroProducts = [PRODUCTS[2], PRODUCTS[0], PRODUCTS[9], PRODUCTS[4]];
+  const onCardMove = useSpotlight();
+  const peekA = PRODUCTS[2];
+  const peekB = PRODUCTS[4];
 
   return (
     <>
       {/* ─── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden">
-        <div className="mx-auto grid max-w-[88rem] items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:px-8 lg:py-24">
+      <section className="grain relative overflow-hidden">
+        {/* Drifting brand blobs give the page depth instead of a flat fill. */}
+        <div
+          aria-hidden="true"
+          className="animate-drift pointer-events-none absolute -top-32 -left-24 size-[34rem] rounded-full bg-brand/18 blur-[90px]"
+        />
+        <div
+          aria-hidden="true"
+          className="animate-drift pointer-events-none absolute -right-16 top-24 size-[26rem] rounded-full bg-gold/14 blur-[80px] [animation-delay:-6s] [animation-duration:22s]"
+        />
+
+        <div className="mx-auto grid max-w-[88rem] items-center gap-14 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:px-8 lg:py-24">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/8 px-3 py-1.5 text-[12.5px] font-semibold text-brand">
-              <QrCode size={14} />
+              <span className="size-1.5 animate-blink rounded-full bg-brand" aria-hidden="true" />
               KHQR &amp; Bakong checkout built in
             </span>
 
-            <h1 className="mt-5 font-display text-[clamp(2.5rem,6vw,4.25rem)] leading-[0.98] font-semibold tracking-tight text-balance">
+            <h1 className="mt-6 font-display text-[clamp(2.75rem,6.5vw,4.75rem)] leading-[0.95] font-semibold tracking-tight text-balance">
               Scan once.
               <br />
-              Pay.{" "}
-              <span className="text-brand">Done.</span>
+              Pay. <span className="text-sheen">Done.</span>
             </h1>
 
             <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-fg-muted">
@@ -90,220 +120,420 @@ export function HomePage() {
               amount typed by hand.
             </p>
 
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <ButtonLink to="/shop" size="lg">
+            <div className="mt-9 flex flex-wrap items-center gap-3">
+              <ButtonLink to="/shop" size="lg" className="shadow-glow">
                 Shop the catalogue
                 <ArrowRight size={17} />
               </ButtonLink>
               <ButtonLink to="/how-to-pay" size="lg" variant="outline">
+                <QrCode size={16} />
                 How the QR works
               </ButtonLink>
             </div>
 
-            <dl className="mt-10 grid max-w-lg grid-cols-3 gap-6 border-t border-line pt-6">
+            <dl className="mt-11 grid max-w-lg grid-cols-3 gap-px overflow-hidden rounded-2xl border border-line bg-line">
               {[
                 { value: `${PAYMENT_WINDOW_SECONDS / 60} min`, label: "per generated code" },
                 { value: "0", label: "card details stored" },
-                { value: "8", label: "partner banks accepted" },
+                { value: `${PARTNERS.length}`, label: "wallets accepted" },
               ].map((stat) => (
-                <div key={stat.label}>
-                  <dt className="font-display text-2xl font-semibold tabular-nums">{stat.value}</dt>
-                  <dd className="mt-0.5 text-[12.5px] leading-snug text-fg-faint">{stat.label}</dd>
+                <div key={stat.label} className="bg-surface px-4 py-4">
+                  <dt className="font-display text-[26px] leading-none font-semibold tabular-nums">
+                    {stat.value}
+                  </dt>
+                  <dd className="mt-1.5 text-[12px] leading-snug text-fg-faint">{stat.label}</dd>
                 </div>
               ))}
             </dl>
           </div>
 
-          {/* Product collage with a live KHQR card floating over it. */}
-          <div className="relative">
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {heroProducts.map((product, index) => (
-                <Link
-                  key={product.id}
-                  to={`/product/${product.slug}`}
-                  className="group relative overflow-hidden rounded-card border border-line bg-surface shadow-soft transition hover:-translate-y-1 hover:shadow-lift"
-                >
-                  <ProductArt product={product} className="aspect-square w-full" eager={index < 2} rounded="rounded-none" />
-                  <span className="absolute inset-x-3 bottom-3 truncate rounded-xl bg-canvas/85 px-3 py-1.5 text-[12.5px] font-semibold backdrop-blur-md">
-                    {product.name}
-                  </span>
-                </Link>
-              ))}
-            </div>
+          {/* Phone mockup running the payment screen, with catalogue tiles peeking out. */}
+          <div className="relative mx-auto w-full max-w-[420px]">
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 -z-10 m-auto size-[22rem] rounded-full bg-brand/22 blur-[70px]"
+            />
 
-            <div className="absolute -bottom-6 -left-4 w-[212px] rotate-[-4deg] rounded-3xl border border-line bg-canvas/95 p-4 shadow-lift backdrop-blur-xl sm:-left-8">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold tracking-[0.14em] text-fg-faint uppercase">
-                  Pay with KHQR
+            <div className="relative">
+              <Link
+                to={`/product/${peekA.slug}`}
+                onMouseMove={onCardMove}
+                className="spotlight group absolute -left-6 -top-8 z-20 hidden w-36 overflow-hidden rounded-2xl border border-line bg-surface shadow-lift transition duration-500 hover:-translate-y-1.5 sm:block lg:-left-14"
+              >
+                <ProductArt product={peekA} className="aspect-[5/4] w-full" rounded="rounded-none" eager />
+                <span className="relative z-3 block truncate bg-canvas/90 px-2.5 py-1.5 text-[11px] font-semibold backdrop-blur">
+                  {peekA.name}
                 </span>
-                <Banknote size={14} className="text-brand" />
+              </Link>
+
+              <Link
+                to={`/product/${peekB.slug}`}
+                onMouseMove={onCardMove}
+                className="spotlight group absolute -right-5 -bottom-9 z-20 hidden w-36 rotate-[5deg] overflow-hidden rounded-2xl border border-line bg-surface shadow-lift transition duration-500 hover:rotate-0 hover:-translate-y-1.5 sm:block lg:-right-12"
+              >
+                <ProductArt product={peekB} className="aspect-[5/4] w-full" rounded="rounded-none" eager />
+                <span className="relative z-3 block truncate bg-canvas/90 px-2.5 py-1.5 text-[11px] font-semibold backdrop-blur">
+                  {peekB.name}
+                </span>
+              </Link>
+
+              {/* Device */}
+              <div className="relative mx-auto w-[292px] sm:w-[318px]">
+                <div className="rounded-[2.9rem] border border-line-strong bg-fg p-2.5 shadow-lift">
+                  <div className="grain relative overflow-hidden rounded-[2.35rem] bg-canvas">
+                    <div className="bg-aurora absolute inset-0 opacity-70" aria-hidden="true" />
+
+                    <div className="relative px-5 pt-5 pb-6">
+                      <span
+                        aria-hidden="true"
+                        className="mx-auto mb-5 block h-1.5 w-20 rounded-full bg-line-strong"
+                      />
+
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.16em] text-fg-faint uppercase">
+                          <Smartphone size={12} className="text-brand" />
+                          Scan to pay
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/12 px-2 py-1 text-[10px] font-bold tracking-wide text-brand uppercase">
+                          <span className="size-1.5 animate-blink rounded-full bg-brand" />
+                          live
+                        </span>
+                      </div>
+
+                      <div className="relative mt-4 overflow-hidden rounded-2xl bg-white p-3 shadow-soft">
+                        <HeroQrMatrix payload={HERO_PAYLOAD} />
+                        <span
+                          aria-hidden="true"
+                          className="animate-scan pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-transparent via-brand/35 to-transparent"
+                        />
+                        <span aria-hidden="true" className="pointer-events-none absolute inset-2">
+                          {[
+                            "top-0 left-0 border-t-2 border-l-2 rounded-tl-xl",
+                            "top-0 right-0 border-t-2 border-r-2 rounded-tr-xl",
+                            "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-xl",
+                            "bottom-0 right-0 border-b-2 border-r-2 rounded-br-xl",
+                          ].map((position) => (
+                            <span
+                              key={position}
+                              className={cn("absolute size-6 border-brand", position)}
+                            />
+                          ))}
+                        </span>
+                      </div>
+
+                      <p className="mt-4 text-center font-display text-3xl font-semibold tracking-tight tabular-nums">
+                        {formatMoney(129, currency)}
+                      </p>
+                      <p className="mt-1 text-center text-[11.5px] text-fg-faint">
+                        {MERCHANT.name} · amount locked in field 54
+                      </p>
+
+                      <div className="mt-5 space-y-2">
+                        <div className="flex h-11 items-center justify-center gap-2 rounded-full bg-brand text-[13.5px] font-semibold text-brand-contrast shadow-soft">
+                          <Fingerprint size={16} />
+                          Confirm &amp; pay
+                        </div>
+                        <p className="flex items-center justify-center gap-1.5 text-[10.5px] text-fg-faint">
+                          <Lock size={11} />
+                          Nothing is charged until you approve in the bank app
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating telemetry pills around the device. */}
+                <div className="animate-float glass absolute -left-8 top-[28%] hidden rounded-2xl border border-line px-3 py-2 shadow-lift md:block">
+                  <p className="text-[10px] font-semibold tracking-[0.14em] text-fg-faint uppercase">
+                    EMVCo MPM
+                  </p>
+                  <p className="mt-0.5 font-mono text-[12px] font-semibold">tag 54 · 129.00</p>
+                </div>
+
+                <div
+                  className="animate-float glass absolute -right-10 bottom-[22%] hidden rounded-2xl border border-line px-3 py-2 shadow-lift md:block [animation-delay:-4.5s]"
+                  style={{ animationDuration: "11s" }}
+                >
+                  <p className="flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.14em] text-fg-faint uppercase">
+                    <BadgeCheck size={12} className="text-brand" />
+                    checksum
+                  </p>
+                  <p className="mt-0.5 font-mono text-[12px] font-semibold">{HERO_CRC} · valid</p>
+                </div>
               </div>
-              <HeroQrMatrix payload={HERO_PAYLOAD} />
-              <p className="mt-3 text-center font-display text-lg font-semibold tabular-nums">
-                {formatMoney(129, currency)}
-              </p>
-              <p className="text-center text-[11px] text-fg-faint">
-                {MERCHANT.name} · amount locked
-              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Partner marquee ──────────────────────────────────────────────── */}
+      <section className="border-y border-line bg-surface/70 py-5">
+        <div className="mx-auto flex max-w-[88rem] items-center gap-6 px-4 sm:px-6 lg:px-8">
+          <p className="hidden shrink-0 text-[11.5px] font-semibold tracking-[0.16em] text-fg-faint uppercase sm:block">
+            Accepted by
+          </p>
+          <div className="edge-fade relative flex-1 overflow-hidden">
+            <div className="animate-marquee flex w-max items-center gap-12 pr-12">
+              {[...PARTNERS, ...PARTNERS].map((partner, index) => (
+                <span
+                  key={`${partner}-${index}`}
+                  className="font-display text-[19px] font-semibold tracking-tight text-fg-faint transition hover:text-fg"
+                >
+                  {partner}
+                </span>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
       {/* ─── Values ───────────────────────────────────────────────────────── */}
-      <section className="border-y border-line bg-surface/60">
-        <div className="mx-auto grid max-w-[88rem] gap-6 px-4 py-8 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+      <section className="mx-auto max-w-[88rem] px-4 py-14 sm:px-6 lg:px-8">
+        <RevealGroup
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          step={0.06}
+        >
           {VALUES.map((value) => (
-            <div key={value.title} className="flex items-start gap-3">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                <value.icon size={17} />
+            <div
+              key={value.title}
+              className="hairline-top group relative flex items-start gap-3 overflow-hidden rounded-card border border-line bg-surface p-5 transition hover:-translate-y-1 hover:shadow-soft"
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand/22 to-gold/16 text-brand">
+                <value.icon size={18} />
               </span>
               <div>
                 <p className="text-[13.5px] font-semibold">{value.title}</p>
-                <p className="text-[12.5px] text-fg-muted">{value.body}</p>
+                <p className="mt-0.5 text-[12.5px] leading-snug text-fg-muted">{value.body}</p>
               </div>
             </div>
           ))}
-        </div>
+        </RevealGroup>
       </section>
 
       {/* ─── Categories ───────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-[88rem] px-4 py-16 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between gap-4">
-          <h2 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-            Browse by category
-          </h2>
+      <section className="mx-auto max-w-[88rem] px-4 pb-16 sm:px-6 lg:px-8">
+        <Reveal className="flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[11.5px] font-semibold tracking-[0.18em] text-brand uppercase">
+              Catalogue
+            </p>
+            <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+              Browse by category
+            </h2>
+          </div>
           <Link
             to="/shop"
-            className="inline-flex items-center gap-1 text-[13.5px] font-medium text-brand transition hover:gap-2"
+            className="inline-flex items-center gap-1 text-[13.5px] font-medium text-brand transition hover:gap-2.5"
           >
             All products <ArrowRight size={15} />
           </Link>
-        </div>
+        </Reveal>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <RevealGroup className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" step={0.08}>
           {CATEGORIES.map((category) => {
-            const count = PRODUCTS.filter((product) => product.category === category.id).length;
-            const cover = PRODUCTS.find((product) => product.category === category.id) ?? PRODUCTS[0];
+            const products = PRODUCTS.filter((product) => product.category === category.id);
+            const cover = products[0] ?? PRODUCTS[0];
             return (
               <Link
                 key={category.id}
                 to={`/shop?category=${category.id}`}
-                className="group relative overflow-hidden rounded-card border border-line bg-surface transition hover:-translate-y-1 hover:shadow-lift"
+                onMouseMove={onCardMove}
+                className="spotlight group relative overflow-hidden rounded-card border border-line bg-surface transition duration-300 hover:-translate-y-1.5 hover:shadow-lift"
               >
-                <ProductArt product={cover} className="aspect-[4/3] w-full" rounded="rounded-none" />
-                <div className="p-4">
-                  <p className="font-display text-[15px] font-semibold">{category.label}</p>
+                <ProductArt
+                  product={cover}
+                  className="aspect-[4/3] w-full transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.06]"
+                  rounded="rounded-none"
+                />
+                <div className="relative z-3 space-y-1 p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-display text-[15px] font-semibold">{category.label}</p>
+                    <span className="rounded-full bg-surface-3/90 px-2 py-0.5 text-[11px] font-semibold text-fg-muted tabular-nums backdrop-blur">
+                      {products.length}
+                    </span>
+                  </div>
                   <p className="text-[12.5px] text-fg-muted">{category.blurb}</p>
-                  <p className="mt-2 text-[12px] text-fg-faint">{count} products</p>
+                  <p className="flex items-center gap-1 pt-1 text-[12px] font-medium text-brand opacity-0 transition-all duration-300 group-hover:opacity-100">
+                    Shop now <ArrowRight size={13} />
+                  </p>
                 </div>
               </Link>
             );
           })}
-        </div>
+        </RevealGroup>
       </section>
 
       {/* ─── Featured ─────────────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[88rem] px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between gap-4">
+        <Reveal className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+            <p className="text-[11.5px] font-semibold tracking-[0.18em] text-gold uppercase">
+              Live from the catalogue
+            </p>
+            <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
               Moving fastest this week
             </h2>
-            <p className="mt-1.5 text-sm text-fg-muted">
-              Ranked by rating, refreshed from the catalogue data in{" "}
-              <code className="rounded bg-surface-2 px-1.5 py-0.5 text-[12px]">src/data/products.ts</code>
-            </p>
           </div>
+          <span className="hidden items-center gap-1.5 text-[12.5px] text-fg-faint sm:inline-flex">
+            <Sparkles size={13} className="text-gold" />
+            Ranked by rating
+          </span>
+        </Reveal>
+        <div className="mt-8">
+          <ProductGrid products={featured} columns="default" />
         </div>
-        <ProductGrid products={featured} className="mt-8" columns="default" />
       </section>
 
       {/* ─── How payment works ────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[88rem] px-4 pb-20 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-card border border-line bg-surface">
-          <div className="grid gap-8 p-8 sm:p-12 lg:grid-cols-[1fr_1.15fr] lg:items-center">
-            <div>
-              <h2 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-                Checkout, in four steps
-              </h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-fg-muted">
-                KHMart builds an EMVCo Merchant-Presented payload — merchant account info, MCC,
-                currency, the exact order total, and a CRC-16 checksum — then renders it locally.
-                Your bank app does the authorisation; the storefront only polls for the result.
-              </p>
-              <ButtonLink to="/how-to-pay" variant="outline" className="mt-6">
-                Read the payment flow
-                <ArrowRight size={16} />
-              </ButtonLink>
-            </div>
-
-            <ol className="space-y-3">
-              {[
-                {
-                  icon: QrCode,
-                  title: "Order total becomes the payload",
-                  body: "Subtotal, discount, delivery and GST collapse into one field 54 amount.",
-                },
-                {
-                  icon: Smartphone,
-                  title: "Scan in any KHQR-capable app",
-                  body: "Bakong and partner bank wallets read the same EMVCo tags.",
-                },
-                {
-                  icon: Banknote,
-                  title: "Amount arrives pre-filled",
-                  body: "The payer confirms rather than types, which removes the miskey risk.",
-                },
-                {
-                  icon: BadgeCheck,
-                  title: "Bill reference closes the loop",
-                  body: "Tag 62.01 matches the settlement notice back to this exact order.",
-                },
-              ].map((step, index) => (
-                <li
-                  key={step.title}
-                  className="flex gap-4 rounded-2xl border border-line bg-surface-2/60 p-4"
-                >
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand text-brand-contrast">
-                    <step.icon size={18} />
+        <Reveal>
+          <div className="grain relative overflow-hidden rounded-card border border-line bg-surface">
+            <div
+              aria-hidden="true"
+              className="absolute -top-24 -right-16 size-72 rounded-full bg-brand/14 blur-3xl"
+            />
+            <div className="relative grid gap-10 p-8 sm:p-12 lg:grid-cols-[1fr_1.15fr] lg:items-center">
+              <div>
+                <p className="text-[11.5px] font-semibold tracking-[0.18em] text-brand uppercase">
+                  Payment architecture
+                </p>
+                <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+                  Checkout, in four steps
+                </h2>
+                <p className="mt-4 text-[15px] leading-relaxed text-fg-muted">
+                  KHMart builds an EMVCo Merchant-Presented payload — merchant account info, MCC,
+                  currency, the exact order total, and a CRC-16 checksum — then renders it locally.
+                  Your bank app does the authorisation; the storefront only polls for the result.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <ButtonLink to="/how-to-pay" variant="outline">
+                    Read the payment flow
+                    <ArrowRight size={16} />
+                  </ButtonLink>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-surface-2 px-3.5 text-[12.5px] font-medium text-fg-muted">
+                    <Banknote size={14} className="text-brand" />
+                    Settlement in-app, no redirect
                   </span>
-                  <div>
-                    <p className="text-[14px] font-semibold">
-                      <span className="mr-2 text-fg-faint tabular-nums">0{index + 1}</span>
-                      {step.title}
-                    </p>
-                    <p className="mt-0.5 text-[13px] text-fg-muted">{step.body}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
+                </div>
+              </div>
+
+              <ol className="relative space-y-3">
+                {/* Connector line behind the step markers. */}
+                <span
+                  aria-hidden="true"
+                  className="absolute top-6 bottom-6 left-[1.65rem] w-px bg-gradient-to-b from-brand/45 via-line to-transparent"
+                />
+                {[
+                  {
+                    icon: QrCode,
+                    title: "Order total becomes the payload",
+                    body: "Subtotal, discount, delivery and GST collapse into one field 54 amount.",
+                  },
+                  {
+                    icon: Smartphone,
+                    title: "Scan in any KHQR-capable app",
+                    body: "Bakong and partner bank wallets read the same EMVCo tags.",
+                  },
+                  {
+                    icon: Banknote,
+                    title: "Amount arrives pre-filled",
+                    body: "The payer confirms rather than types, which removes the miskey risk.",
+                  },
+                  {
+                    icon: BadgeCheck,
+                    title: "Bill reference closes the loop",
+                    body: "Tag 62.01 matches the settlement notice back to this exact order.",
+                  },
+                ].map((step, index) => (
+                  <li
+                    key={step.title}
+                    className="relative flex gap-4 rounded-2xl border border-line bg-surface-2/60 p-4 transition hover:border-brand/35 hover:bg-surface-2"
+                  >
+                    <span className="z-3 flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-brand-strong text-brand-contrast shadow-soft">
+                      <step.icon size={18} />
+                    </span>
+                    <div>
+                      <p className="text-[14px] font-semibold">
+                        <span className="mr-2 font-mono text-[11.5px] text-fg-faint">
+                          0{index + 1}
+                        </span>
+                        {step.title}
+                      </p>
+                      <p className="mt-0.5 text-[13px] leading-snug text-fg-muted">{step.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ─── Quotes ───────────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-[88rem] px-4 pb-24 sm:px-6 lg:px-8">
-        <h2 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-          What early shoppers said
-        </h2>
-        <div className="mt-8 grid gap-4 lg:grid-cols-3">
+      <section className="mx-auto max-w-[88rem] px-4 pb-20 sm:px-6 lg:px-8">
+        <Reveal>
+          <h2 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+            What early shoppers said
+          </h2>
+        </Reveal>
+        <RevealGroup className="mt-8 grid gap-4 lg:grid-cols-3" step={0.1}>
           {QUOTES.map((item) => (
             <figure
               key={item.name}
-              className="flex flex-col gap-4 rounded-card border border-line bg-surface p-6"
+              onMouseMove={onCardMove}
+              className="spotlight hairline-top relative flex flex-col gap-4 overflow-hidden rounded-card border border-line bg-surface p-6 transition hover:-translate-y-1 hover:shadow-soft"
             >
               <Stars rating={item.rating} size={13} />
-              <blockquote className="text-[14.5px] leading-relaxed text-fg-muted">
+              <blockquote className="relative z-3 text-[14.5px] leading-relaxed text-fg-muted">
                 “{item.quote}”
               </blockquote>
-              <figcaption className="mt-auto">
-                <p className="text-[13.5px] font-semibold">{item.name}</p>
-                <p className="text-[12.5px] text-fg-faint">{item.role}</p>
+              <figcaption className="relative z-3 mt-auto flex items-center gap-3 border-t border-line pt-4">
+                <span className="flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-brand/25 to-gold/20 font-display text-[13px] font-bold text-brand">
+                  {item.name.charAt(0)}
+                </span>
+                <span>
+                  <span className="block text-[13.5px] font-semibold">{item.name}</span>
+                  <span className="block text-[12px] text-fg-faint">{item.role}</span>
+                </span>
               </figcaption>
             </figure>
           ))}
-        </div>
+        </RevealGroup>
+      </section>
+
+      {/* ─── Closing CTA ──────────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-[88rem] px-4 pb-24 sm:px-6 lg:px-8">
+        <Reveal>
+          <div className="bg-aurora grain relative overflow-hidden rounded-card border border-line px-8 py-14 text-center sm:px-12">
+            <div
+              aria-hidden="true"
+              className="animate-drift pointer-events-none absolute -bottom-24 left-1/2 size-[26rem] -translate-x-1/2 rounded-full bg-brand/16 blur-[80px]"
+            />
+            <div className="relative">
+              <span className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-[12px] font-semibold text-brand">
+                <QrCode size={13} />
+                Ready when you are
+              </span>
+              <h2 className="mx-auto mt-5 max-w-2xl font-display text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">
+                Put a basket together and watch the total become a{" "}
+                <span className="text-sheen">scannable code</span>
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-[15px] text-fg-muted">
+                Everything runs client-side in this build — filters, cart maths, payload, checksum
+                and receipt — so you can trace a dollar from the catalogue tile to field 54.
+              </p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <ButtonLink to="/shop" size="lg" className="shadow-glow">
+                  Start a basket
+                  <ArrowRight size={17} />
+                </ButtonLink>
+                <ButtonLink to="/how-to-pay" size="lg" variant="ghost">
+                  Inspect a sample payload
+                </ButtonLink>
+              </div>
+            </div>
+          </div>
+        </Reveal>
       </section>
     </>
   );
@@ -311,8 +541,8 @@ export function HomePage() {
 
 /**
  * Small static matrix used only as the hero visual. The checkout QR is generated with the
- * `qrcode` renderer; this one is hand-drawn from the payload bytes so the landing page has
- * no canvas work to do while it is still animating in.
+ * `qrcode` renderer; this one is hand-drawn from the payload so the landing page has no canvas
+ * work to do while it is still animating in.
  */
 function HeroQrMatrix({ payload }: { payload: string }) {
   const size = 21;
@@ -344,7 +574,7 @@ function HeroQrMatrix({ payload }: { payload: string }) {
   return (
     <svg
       viewBox={`0 0 ${size} ${size}`}
-      className="mx-auto mt-3 w-full max-w-[140px] rounded-lg bg-white p-1"
+      className="mx-auto w-full max-w-[150px]"
       role="img"
       aria-label="Illustrative KHQR code"
       shapeRendering="crispEdges"
